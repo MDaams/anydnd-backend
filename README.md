@@ -1,8 +1,8 @@
-AI-Powered Turn-Based Game Backend
+# AI-Powered Turn-Based Game Backend
 
 A robust, production-grade NestJS backend designed to orchestrate turn-based gameplay loops driven by external AI service integrations. This project implements clean domain separation, a centralized orchestrator pattern, and defensive error-handling with automatic state rollbacks.
 
-### Architecture Overview
+# Architecture Overview
 
 The application follows a clean modular architecture, separating **HTTP** routing (Controllers) from core workflow orchestration (GameService) and specialized domain micro-services.
 
@@ -14,7 +14,7 @@ GameController
     ├── AIService (AI Content Generation & Parsing)
     └── StoryService (Genre, Tone, & Setting Config)
 
-### Key Features
+## Key Features
 
 Orchestration Pattern (GameService): Centralizes multi-step transaction loops (such as ending a turn or initializing a new game) without cluttering controllers or domain layers.
 
@@ -24,7 +24,7 @@ Modular Domain Services: Strictly partitioned domains for tracking game turns, e
 
 Comprehensive Testing Suite: Fully tested with Jest unit specs (covering edge cases, mocks, and failure paths) and Supertest **E2E** integration specs.
 
-### Tech Stack
+## Tech Stack
 
 Framework: NestJS (TypeScript)
 
@@ -34,7 +34,7 @@ Validation: class-validator, class-transformer
 
 Logging: Custom logger utility (AppLogger)
 
-### Getting Started
+# Getting Started
 
 Prerequisites
 
@@ -48,39 +48,39 @@ Installation
 
 git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
 
-# Install dependencies
+## Install dependencies
 
 npm install
 
 Running the Application
 
-# development
+## development
 
 npm run start
 
-# watch mode
+## watch mode
 
 npm run start:dev
 
-# production mode
+## production mode
 
 npm run start:prod
 
-### Running Tests
+## Running Tests
 
-# unit tests
+### unit tests
 
 npm run test
 
-# e2e tests
+### e2e tests
 
 npm run test:e2e
 
-# test coverage
+### test coverage
 
 npm run test:cov
 
-### Engineering Highlights
+# Engineering Highlights
 
 Defensive State Management: Turns are only officially advanced (bumpTurn) once external AI generation successfully completes. If a failure occurs, the state rollback mechanism restores previous turn integrity.
 
