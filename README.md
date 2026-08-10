@@ -91,9 +91,3 @@ npm run test:e2e
 ```
 npm run test:cov
 ```
-# Engineering Highlights
-
-* Defensive State Management: Turns are only officially advanced (bumpTurn) once external AI generation successfully completes. If a failure occurs, the state rollback mechanism restores previous turn integrity.
-* Mocked Unit Boundaries: Service specs isolate business logic cleanly using customized Jest mocks for external AI wrappers and independent domain models.
-* Generative AI Usage
-
