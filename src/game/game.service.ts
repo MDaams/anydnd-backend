@@ -17,6 +17,7 @@ import { TurnContentDto } from 'src/ai/dto/turnContent.dto';
 import { randomUUID } from 'crypto';
 import { randomNumber } from '../common/helpers.utils';
 import { Story } from 'src/story/models/story.model';
+import { EventAction } from 'src/events/models/action.model';
 
 @Injectable()
 export class GameService {
@@ -150,6 +151,15 @@ export class GameService {
     this.addWorldSummary(endTurnConfig);
     AppLogger.log(`✅ Config creation complete\n`);
     return endTurnConfig;
+  }
+
+  submitChoice(eventId: string, intent: string, choice: string): GameEvent {
+    return this.eventsService.submitChoice(
+      eventId,
+      intent,
+      choice,
+      this.gameTurnService.getTurn(),
+    );
   }
 
   async endTurn() {
