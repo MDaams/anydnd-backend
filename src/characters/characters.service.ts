@@ -1,13 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { GameCharacter } from './models/gameCharacter.model';
-import { StoryService } from '../story/story.service';
 import { AppLogger } from '../common/logger.util';
 
 @Injectable()
 export class CharactersService {
   private characters: GameCharacter[] = [];
-
-  constructor(private readonly storyService: StoryService) {}
 
   getCharacters(): GameCharacter[] {
     AppLogger.log(`Retrieving ${this.characters.length} characters`);
