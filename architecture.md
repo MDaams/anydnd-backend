@@ -4,9 +4,7 @@
 graph TD
     CharactersController --> CharactersService
     EventsController --> EventsService
-    EventsController --> GameTurnService
     GameController --> GameService
-    CharactersService --> StoryService
     GameService --> GameTurnService
     GameService --> EventsService
     GameService --> CharactersService
