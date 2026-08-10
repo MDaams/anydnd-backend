@@ -14,7 +14,7 @@ graph TD
     GameService --> StoryService
 ```
 
-# Architecture Overview
+## Architecture Overview
 
 The application follows a clean modular architecture, separating **HTTP** routing (Controllers) from core workflow orchestration (GameService) and specialized domain micro-services.
 ```
@@ -26,6 +26,15 @@ GameController
     ├── AIService (AI Content Generation & Parsing)
     └── StoryService (Genre, Tone, & Setting Config)
 ```
+
+## Learnings
+* Async/sync: Async should be used when using a third party api or datasource. The ensure the API that calls the backend API waits for this awaits should be implemented if the caller should wait for the request to be processed, remove this and it becomes an async (fire and forget) endpoint.
+* Orchestrator pattern: Using one service to manage the gameplay and the creation of new data, use services to keep track of this state. This way the orchestrator exposes fewer endpoints so it has a clear purpose: End the turn, submit choices. The information in these services is exposed through their own controller layer.
+* Mermaid documentation generation: Automatically generated architecture documentation based on the codebase itself.
+* Deterministic/generated: Keep things that should happen at intervals, eventrolls, charactercreation rolls in the backend. Let AI fill out the content when an event is created or a character needs to be created. GenAI is not good at doing deterministic rolls since it seems to always have either a high (80%) or low (20%) chance. AI does not do hard math, it seems to stick to extreme values in a spectrum. Rule of thumb: Logic belongs in the backend, content belongs in the GenAI (it is a good replacement for hardcoded events/characters or information that should normally come from the user, if that information is purely content).
+* Cohesive prompt sequences: Using a small summary to limit token use but keep enough context for the next prompt so the events follow eachother instead of creating a completely new narrative.
+* Circular dependencies: When service A injects Service B, and Service B injects Service A. This is a chicken and egg story, it should be solved architecturally.
+
 ## Key Features
 
 * Orchestration Pattern (GameService): Centralizes multi-step transaction loops (such as ending a turn or initializing a new game) without cluttering controllers or domain layers.
@@ -46,7 +55,7 @@ Prerequisites
 * npm or yarn
 * Installation
 
-# Clone the repository
+## Clone the repository
 ```
 git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
 ```
@@ -88,7 +97,3 @@ npm run test:cov
 * Mocked Unit Boundaries: Service specs isolate business logic cleanly using customized Jest mocks for external AI wrappers and independent domain models.
 * Generative AI Usage
 
-# Learnings
-* Async/sync
-* Orchestrator pattern
-* Mermaid documentation generation
