@@ -241,7 +241,7 @@ describe('GameController (e2e)', () => {
 
       const testEvent = {
         id: randomUUID(),
-        type: 'WORLD' as any,
+        type: 'SCENE' as any,
         title: 'Test Event',
         description: 'A test event',
         status: EventStatus.PENDING,
@@ -250,6 +250,7 @@ describe('GameController (e2e)', () => {
         wasCreatedLastTurn: jest.fn(),
         wasResolvedLastTurn: jest.fn(),
       };
+
       eventsService.addEvent(testEvent);
 
       return getServer()
@@ -275,6 +276,30 @@ describe('GameController (e2e)', () => {
         .put('/game/some-id/submit-choice')
         .send({ choice: '', intent: 'Talk' })
         .expect(400);
+    });
+
+    it('should throw a 422 when WorldEvent is passed', () => {
+      const choice: string = 'Test Choice';
+      const intent: string = 'Talk';
+
+      const testEvent = {
+        id: randomUUID(),
+        type: 'WORLD' as any,
+        title: 'Test Event',
+        description: 'A test event',
+        status: EventStatus.PENDING,
+        createdAt: new GameTurn(1),
+        action: new EventAction(choice, intent, 1),
+        wasCreatedLastTurn: jest.fn(),
+        wasResolvedLastTurn: jest.fn(),
+      };
+
+      eventsService.addEvent(testEvent);
+
+      return getServer()
+        .put(`/game/${testEvent.id}/submit-choice`)
+        .send({ choice, intent })
+        .expect(422);
     });
   });
 

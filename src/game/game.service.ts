@@ -8,9 +8,10 @@ import { AIService } from '../ai/ai.service';
 import { StoryService } from '../story/story.service';
 import { AppLogger } from '../common/logger.util';
 import {
+  BaseGameEvent,
   EventStatus,
   EventType,
-  GameEvent,
+  GameEventFactory,
 } from '../events/models/events.model';
 import { EndTurnConfig } from './models/chanceConfig.models';
 import { TurnContentDto } from 'src/ai/dto/turnContent.dto';
@@ -37,7 +38,7 @@ export class GameService {
     return this.gameTurnService.getTurn();
   }
 
-  getEvents(): GameEvent[] {
+  getEvents(): BaseGameEvent[] {
     return this.eventsService.getEventLog();
   }
 
@@ -73,7 +74,7 @@ export class GameService {
   }
 
   private loadPastEvents(config: EndTurnConfig) {
-    const allGameEvents: GameEvent[] = this.eventsService.getEventLog();
+    const allGameEvents: BaseGameEvent[] = this.eventsService.getEventLog();
     config.pastCharacterEvents = allGameEvents.filter((e) => {
       return e.status == EventStatus.RESOLVED && e.type == EventType.CHARACTER;
     });
@@ -152,7 +153,7 @@ export class GameService {
     return endTurnConfig;
   }
 
-  submitChoice(eventId: string, intent: string, choice: string): GameEvent {
+  submitChoice(eventId: string, intent: string, choice: string): BaseGameEvent {
     return this.eventsService.submitChoice(
       eventId,
       intent,
@@ -223,7 +224,7 @@ export class GameService {
 
     const currentTurn: GameTurn = this.gameTurnService.getTurn().clone();
     this.eventsService.addEvent(
-      GameEvent.from({
+      GameEventFactory.fromPlain({
         id: randomUUID(),
         type: EventType.WORLD,
         status: EventStatus.PENDING,
@@ -235,7 +236,7 @@ export class GameService {
     AppLogger.log(`⚡ Adding ${characterEvents.length} character events`);
     characterEvents.forEach((e) => {
       this.eventsService.addEvent(
-        GameEvent.from({
+        GameEventFactory.fromPlain({
           id: randomUUID(),
           type: EventType.CHARACTER,
           status: EventStatus.PENDING,
@@ -252,7 +253,7 @@ export class GameService {
     if (sceneEvent) {
       AppLogger.log(`⚡ Adding scene event`);
       this.eventsService.addEvent(
-        GameEvent.from({
+        GameEventFactory.fromPlain({
           id: randomUUID(),
           type: EventType.SCENE,
           status: EventStatus.PENDING,

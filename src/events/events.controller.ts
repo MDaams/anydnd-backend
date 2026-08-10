@@ -1,7 +1,7 @@
 import { Controller, Get, Delete, Body, Put, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { EventsService } from './events.service';
-import { GameEvent } from './models/events.model';
+import { BaseGameEvent } from './models/events.model';
 
 @ApiTags('events')
 @Controller('events')
@@ -13,9 +13,9 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Event log retrieved successfully',
-    type: [GameEvent],
+    type: [BaseGameEvent],
   })
-  getEventLog(): Promise<Array<GameEvent>> {
+  getEventLog(): Promise<Array<BaseGameEvent>> {
     return Promise.resolve(this.service.getEventLog());
   }
   @Delete()

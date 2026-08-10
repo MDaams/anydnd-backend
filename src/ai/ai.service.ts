@@ -2,7 +2,11 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { AppLogger } from '../common/logger.util';
 import { EndTurnConfig } from '../game/models/chanceConfig.models';
-import { EventStatus } from '../events/models/events.model';
+import {
+  EventStatus,
+  EventType,
+  EventUtils,
+} from '../events/models/events.model';
 import { TurnContentDto } from './dto/turnContent.dto';
 
 @Injectable()
@@ -116,14 +120,14 @@ export class AIService {
       endTurnConfig.pastCharacterEvents &&
       endTurnConfig.pastCharacterEvents.length > 0
         ? endTurnConfig.pastCharacterEvents.filter((e) =>
-            e.wasResolvedLastTurn(endTurnConfig.gameTurn),
+            EventUtils.wasResolvedLastTurn(e, endTurnConfig.gameTurn),
           )
         : 'No recent character events';
 
     const recentWorldEventsContext =
       endTurnConfig.pastWorldEvents && endTurnConfig.pastWorldEvents.length > 0
         ? endTurnConfig.pastWorldEvents.filter((e) =>
-            e.wasCreatedLastTurn(endTurnConfig.gameTurn),
+            EventUtils.wasCreatedLastTurn(e, endTurnConfig.gameTurn),
           )
         : 'No recent events';
 
@@ -143,16 +147,15 @@ export class AIService {
       (e) =>
         e.status === EventStatus.RESOLVED &&
         e.action &&
-        e.wasResolvedLastTurn(endTurnConfig.gameTurn),
+        EventUtils.wasResolvedLastTurn(e, endTurnConfig.gameTurn),
     );
 
     const lastTurnCreatedWorldEvents = (
       endTurnConfig.pastWorldEvents || []
     ).filter(
       (e) =>
-        e.status === EventStatus.RESOLVED &&
-        e.action &&
-        e.wasCreatedLastTurn(endTurnConfig.gameTurn),
+        EventType.WORLD == e.type &&
+        EventUtils.wasCreatedLastTurn(e, endTurnConfig.gameTurn),
     );
 
     const lastTurnResolvedEvents = [
@@ -160,25 +163,23 @@ export class AIService {
       ...lastTurnResolvedCharacterAndSceneEvents,
     ];
 
+    const noChoiceText: string = 'No choices were made last turn';
     const playerChoicesContext =
       lastTurnResolvedEvents.length > 0
         ? lastTurnResolvedEvents
+            .filter((e) => !EventUtils.isWorldEvent(e))
             .map((e) => {
-              let target = 'World Event';
-              if (e.characterId) {
-                target = `Character (${e.characterId})`;
-              } else if (e.type === 'SCENE') {
-                target = 'Scene / Environment';
-              }
-              const intent = e.action?.getIntent() ?? 'Unknown';
-              const actionText = e.action?.getAction() ?? 'No action text';
-              return `- [${target}] Event: "${e.title}" | Player Intent: [${intent}] -> Action Taken: "${actionText}"`;
+              const target = EventUtils.isCharacterEvent(e)
+                ? `Character (${e.characterId})`
+                : 'Scene / Environment';
+
+              return `- [${target}] ${e.toString()}`;
             })
             .join('\n')
-        : 'No choices were made last turn.';
+        : noChoiceText;
 
     const lastTurnChoices = endTurnConfig.pastCharacterEvents.filter((e) =>
-      e.wasResolvedLastTurn(endTurnConfig.gameTurn),
+      EventUtils.wasResolvedLastTurn(e, endTurnConfig.gameTurn),
     );
 
     // Hier voegen we expliciet de harde succes/failure uitkomst toe als dwingende instructie voor de AI

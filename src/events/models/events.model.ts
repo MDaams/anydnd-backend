@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GameTurn } from '../../game/models/turn.models';
-import { ActionIntent, EventAction } from './action.model';
+import { EventAction } from './action.model';
 
 export enum EventType {
   WORLD = 'WORLD',
@@ -13,7 +13,7 @@ export enum EventStatus {
   RESOLVED = 'RESOLVED',
 }
 
-export class GameEvent {
+export class BaseGameEvent {
   @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000' })
   id!: string;
 
@@ -26,29 +26,31 @@ export class GameEvent {
   @ApiProperty({ example: 'A major riot has erupted in the prison...' })
   description!: string;
 
+  @ApiProperty({ enum: EventStatus, example: EventStatus.PENDING })
+  status!: EventStatus;
+
+  @ApiProperty({ type: () => GameTurn })
+  createdAt!: GameTurn;
+}
+
+// Een wereldgebeurtenis draagt zijn eigen unieke kenmerken
+export class WorldEvent extends BaseGameEvent {
+  @ApiProperty({ required: false })
+  asciiArt?: string;
+}
+
+// Gebeurtenissen waarbij keuzes gemaakt kunnen worden, dragen direct de benodigde eigenschappen
+export class CharacterEvent extends BaseGameEvent {
+  @ApiProperty({ example: 'char-123', required: false })
+  characterId?: string;
+
   @ApiProperty({
     example: ['Call for reinforcements', 'Evacuate sector'],
     type: [String],
   })
   predefinedOptions?: string[];
 
-  @ApiProperty({
-    example: '  /\\_/\\\\\n |_=_|\n  (°_°)',
-    description: 'ASCII art representation of the event scene',
-    required: false,
-  })
-  asciiArt?: string;
-
-  @ApiProperty({ enum: EventStatus, example: EventStatus.PENDING })
-  status!: EventStatus;
-
-  @ApiProperty({ example: 'char-123', required: false })
-  characterId?: string;
-
-  @ApiProperty({
-    example: true,
-    required: false,
-  })
+  @ApiProperty({ example: true, required: false })
   chosenOptionSucces?: boolean;
 
   @ApiProperty({
@@ -57,53 +59,70 @@ export class GameEvent {
   })
   resolutionOutcome?: string;
 
-  @ApiProperty({
-    type: () => GameTurn,
-    description: 'The game turn when this event was created',
-    example: {
-      step: 1,
-      day: 'Monday',
-      sectionOfDay: 'Morning',
-    },
-    required: true,
-  })
-  createdAt!: GameTurn;
-
-  @ApiProperty({
-    type: () => EventAction,
-    description: 'The action take by the player',
-    example: {
-      action: 'How are you doing?',
-      intent: 'Talk',
-      createdAt: {
-        step: 1,
-        day: 'Monday',
-        sectionOfDay: 'Morning',
-      },
-    },
-  })
+  @ApiProperty({ type: () => EventAction, required: false })
   action?: EventAction;
 
-  /**
-   * Factory method to create a GameEvent instance from a plain object
-   */
-  static from(data: Partial<GameEvent>): GameEvent {
-    const event = new GameEvent();
-    Object.assign(event, data);
-    return event;
+  override toString(): string {
+    return `Event: "${this.title}" | Player Intent: [${this.action?.getIntent() || 'Unknown'}] -> Action Taken: "${this.action?.getAction() || 'Unknown'}"`;
   }
+}
 
-  wasResolvedLastTurn(currentTurn: GameTurn) {
-    if (!this.action?.getCreatedAtStep()) {
-      return false;
-    }
-    return currentTurn.getStep() - 1 === this.action.getCreatedAtStep();
+export class SceneEvent extends BaseGameEvent {
+  @ApiProperty({ example: ['Inspect the area', 'Ignore'], type: [String] })
+  predefinedOptions?: string[];
+
+  @ApiProperty({ example: true, required: false })
+  chosenOptionSucces?: boolean;
+
+  @ApiProperty({ type: () => EventAction, required: false })
+  action?: EventAction;
+
+  override toString(): string {
+    return `Event: "${this.title}" | Player Intent: [${this.action?.getIntent() || 'Unknown'}] -> Action Taken: "${this.action?.getAction() || 'Unknown'}"`;
   }
+}
 
-  wasCreatedLastTurn(currentTurn: GameTurn) {
-    if (!this.createdAt) {
-      return false;
+export const EventUtils = {
+  wasCreatedLastTurn(event: BaseGameEvent, currentTurn: GameTurn): boolean {
+    if (!event.createdAt) return false;
+    return currentTurn.getStep() - 1 === event.createdAt.getStep();
+  },
+
+  wasResolvedLastTurn(
+    event: { action?: EventAction },
+    currentTurn: GameTurn,
+  ): boolean {
+    if (!event.action?.getCreatedAtStep()) return false;
+    return currentTurn.getStep() - 1 === event.action.getCreatedAtStep();
+  },
+
+  isWorldEvent(e: BaseGameEvent): e is WorldEvent {
+    return e.type == EventType.WORLD && e instanceof WorldEvent;
+  },
+
+  isSceneEvent(e: BaseGameEvent): e is SceneEvent {
+    return e.type == EventType.SCENE && e instanceof SceneEvent;
+  },
+
+  isCharacterEvent(e: BaseGameEvent): e is CharacterEvent {
+    return e.type == EventType.CHARACTER && e instanceof CharacterEvent;
+  },
+};
+
+export class GameEventFactory {
+  static fromPlain(data: {
+    type: EventType;
+    [key: string]: any;
+  }): BaseGameEvent {
+    switch (data.type) {
+      case EventType.WORLD:
+        return Object.assign(new WorldEvent(), data);
+      case EventType.CHARACTER:
+        return Object.assign(new CharacterEvent(), data);
+      case EventType.SCENE:
+        return Object.assign(new SceneEvent(), data);
+      default:
+        return Object.assign(new BaseGameEvent(), data);
     }
-    return currentTurn.getStep() - 1 === this.createdAt.getStep();
   }
 }

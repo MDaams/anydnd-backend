@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GameEvent } from '../../events/models/events.model';
+import { CharacterEvent } from '../../events/models/events.model';
 
 export class GameCharacter {
   @ApiProperty({ example: 'char-123' })
@@ -11,6 +11,9 @@ export class GameCharacter {
   @ApiProperty({ example: 'A brief summary of the character' })
   summary!: string;
 
-  @ApiProperty({ type: [Object], description: 'Log of game events' })
-  eventLog!: GameEvent[];
+  @ApiProperty({
+    type: [Object],
+    description: 'Log of events relevant for this character',
+  })
+  eventLog!: CharacterEvent[];
 }

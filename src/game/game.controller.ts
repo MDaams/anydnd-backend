@@ -6,7 +6,7 @@ import { Story } from '../story/models/story.model';
 import { CreateGameDto } from './dto/create-game.dto';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
 import { SubmitChoiceDto } from '../events/dto/submitChoice.dto';
-import { GameEvent } from '../events/models/events.model';
+import { BaseGameEvent } from '../events/models/events.model';
 
 @ApiTags('game')
 @Controller('game')
@@ -86,7 +86,7 @@ export class GameController {
   @ApiResponse({
     status: 200,
     description: 'Choice submitted successfully',
-    type: [GameEvent],
+    type: [BaseGameEvent],
   })
   @ApiResponse({
     status: 500,
@@ -95,7 +95,7 @@ export class GameController {
   submitChoice(
     @Param('id') eventId: string,
     @Body() dto: SubmitChoiceDto,
-  ): GameEvent {
+  ): BaseGameEvent {
     return this.gameService.submitChoice(eventId, dto.intent, dto.choice);
   }
 }
