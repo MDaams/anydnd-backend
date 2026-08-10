@@ -33,12 +33,14 @@ describe('GameService', () => {
       }),
     };
 
-    // Use real GameTurnService since it has no external dependencies
+    // Use mocked GameTurnService including debumpTurn for rollbacks
     gameTurnService = {
       getTurn: jest.fn().mockReturnValue(mockTurn),
       bumpTurn: jest.fn(),
+      debumpTurn: jest.fn(), // Added to support rollbacks
       resetTurns: jest.fn(),
-    } as any; // Create mock services
+    } as any;
+
     charactersService = {
       clearCharacters: jest.fn(),
       createCharacter: jest.fn(),
@@ -195,8 +197,9 @@ describe('GameService', () => {
         // Expected to throw
       }
 
-      // debumpTurn should be called in finally block
+      // Verify that bumpTurn happened followed by the rollback (debumpTurn)
       expect(gameTurnService.bumpTurn).toHaveBeenCalled();
+      expect(gameTurnService.debumpTurn).toHaveBeenCalledTimes(1);
     });
 
     it('should not add events when AI service fails', async () => {

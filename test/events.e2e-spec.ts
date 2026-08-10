@@ -49,8 +49,6 @@ describe('EventsController (e2e)', () => {
     });
   });
 
- 
-
   describe('DELETE /events', () => {
     it('should clear the event log', () => {
       return getServer().delete('/events').expect(200);
