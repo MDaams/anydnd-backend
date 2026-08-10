@@ -7,7 +7,6 @@ if (!process.env.GEMINI_API_KEY) {
   process.env.GEMINI_API_KEY = 'dummy-key-for-docs-generation';
 }
 
-// Lijst met NestJS interne typen/woorden die we willen negeren
 const ignoredNames = new Set([
   'ModuleRef',
   'Reflector',
@@ -24,7 +23,6 @@ async function generateMermaid() {
   const mermaidLines: string[] = ['graph TD'];
   const addedRelations = new Set<string>();
 
-  // Helper om te controleren of een naam valide is
   const isValidComponent = (name: string) => {
     return (
       name &&
@@ -35,16 +33,13 @@ async function generateMermaid() {
   };
 
   for (const [_, moduleRef] of modulesContainer.entries()) {
-    // Haal alle controllers op van deze module
     if (moduleRef.controllers) {
       for (const [_, controller] of moduleRef.controllers.entries()) {
         const ctrlClass = controller.metatype;
         if (!ctrlClass) continue;
         const ctrlName = ctrlClass.name;
-
         if (!isValidComponent(ctrlName)) continue;
 
-        // Vraag via Reflect de constructor parameters (dependencies) op
         const dependencies =
           Reflect.getMetadata('design:paramtypes', ctrlClass) || [];
 
@@ -61,13 +56,11 @@ async function generateMermaid() {
       }
     }
 
-    // Haal ook de providers (services) op om te kijken of *zij* andere services aanroepen
     if (moduleRef.providers) {
       for (const [_, provider] of moduleRef.providers.entries()) {
         const providerClass = provider.metatype;
         if (!providerClass) continue;
         const providerName = providerClass.name;
-
         if (!isValidComponent(providerName)) continue;
 
         const dependencies =
@@ -87,12 +80,34 @@ async function generateMermaid() {
     }
   }
 
-  const markdownContent = `# System Architecture\n\n\`\`\`mermaid\n${mermaidLines.join('\n')}\n\`\`\`\n`;
-  fs.writeFileSync('architecture.md', markdownContent);
+  const mermaidCode = mermaidLines.join('\n');
+
+  // Lees de bestaande README.md
+  let readmeContent = fs.readFileSync('README.md', 'utf8');
+
+  // Definieer de bakens waar de mermaid grafiek tussen moet komen
+  // Zorg dat je in je README.md een lege codeblock zet of markers gebruikt
+  const startMarker = '```mermaid';
+  const endMarker = '```';
+
+  // Zoek de plek op basis van de eerste voorkomst of vervang de placeholder
+  // Een nette manier is om de placeholder ```mermaid\n``` te vervangen:
+  const targetPattern = /```mermaid\s*[\s\S]*?```/;
+
+  const replacement = `\`\`\`mermaid\n${mermaidCode}\n\`\`\``;
+
+  if (targetPattern.test(readmeContent)) {
+    readmeContent = readmeContent.replace(targetPattern, replacement);
+  } else {
+    // Fallback als de placeholder mist: voeg hem toe onder Architecture Overview
+    readmeContent += `\n\n## Generated Architecture\n${replacement}\n`;
+  }
+
+  fs.writeFileSync('README.md', readmeContent);
 
   await app.close();
   console.log(
-    'Architecture.md successfully updated with clean dependency graph!',
+    'README.md successfully updated with live NestJS dependency graph!',
   );
 }
 
