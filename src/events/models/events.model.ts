@@ -33,13 +33,11 @@ export class BaseGameEvent {
   createdAt!: GameTurn;
 }
 
-// Een wereldgebeurtenis draagt zijn eigen unieke kenmerken
 export class WorldEvent extends BaseGameEvent {
   @ApiProperty({ required: false })
   asciiArt?: string;
 }
 
-// Gebeurtenissen waarbij keuzes gemaakt kunnen worden, dragen direct de benodigde eigenschappen
 export class CharacterEvent extends BaseGameEvent {
   @ApiProperty({ example: 'char-123', required: false })
   characterId?: string;
