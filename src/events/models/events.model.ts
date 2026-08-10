@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GameTurn } from '../../game/models/turn.models';
+import { GameTurn } from 'src/game/models/turn.models';
 import { EventAction } from './action.model';
 
 export enum EventType {

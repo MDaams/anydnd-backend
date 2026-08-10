@@ -9,6 +9,6 @@ module.exports = {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
-  coverageDirectory: '../coverage',
+  coverageDirectory: 'src/coverage',
   testEnvironment: 'node',
 };

@@ -7,7 +7,7 @@ import {
   EventStatus,
   EventType,
   GameEvent,
-} from '../events/models/events.model';
+} from 'src/events/models/events.model';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
 import { GameTurnService } from './game-turn.service';
 

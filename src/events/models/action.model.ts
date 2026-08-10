@@ -1,4 +1,4 @@
-import { GameTurn } from '../../game/models/turn.models';
+import { GameTurn } from 'src/game/models/turn.models';
 
 export enum ActionIntent {
   ESCAPE = 'Escape',

@@ -11,8 +11,8 @@ import {
   SceneEvent,
   WorldEvent,
 } from './models/events.model';
-import { GameCharacter } from '../characters/models/gameCharacter.model';
-import { randomNumber } from '../common/helpers.utils';
+import { GameCharacter } from 'src/characters/models/gameCharacter.model';
+import { randomNumber } from 'src/common/helpers.utils';
 import { GameTurn } from 'src/game/models/turn.models';
 import { EventAction } from './models/action.model';
 

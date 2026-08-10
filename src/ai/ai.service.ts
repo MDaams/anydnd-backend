@@ -1,12 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
-import { AppLogger } from '../common/logger.util';
-import { EndTurnConfig } from '../game/models/chanceConfig.models';
+import { AppLogger } from 'src/common/logger.util';
+import { EndTurnConfig } from 'src/game/models/chanceConfig.models';
 import {
   EventStatus,
   EventType,
   EventUtils,
-} from '../events/models/events.model';
+} from 'src/events/models/events.model';
 import { TurnContentDto } from './dto/turnContent.dto';
 
 @Injectable()

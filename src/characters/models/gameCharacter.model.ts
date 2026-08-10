@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CharacterEvent } from '../../events/models/events.model';
+import { CharacterEvent } from 'src/events/models/events.model';
 
 export class GameCharacter {
   @ApiProperty({ example: 'char-123' })

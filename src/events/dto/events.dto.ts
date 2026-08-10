@@ -7,8 +7,8 @@ import {
   IsNotEmptyObject,
 } from 'class-validator';
 
-import { EventType } from '../models/events.model';
-import { GameTurn } from '../../game/models/turn.models';
+import { EventType } from 'src/events/models/events.model';
+import { GameTurn } from 'src/game/models/turn.models';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
 
 export class EventResponseDto {

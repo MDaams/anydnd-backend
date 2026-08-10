@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GameCharacter } from './models/gameCharacter.model';
-import { AppLogger } from '../common/logger.util';
+import { AppLogger } from 'src/common/logger.util';
 
 @Injectable()
 export class CharactersService {
