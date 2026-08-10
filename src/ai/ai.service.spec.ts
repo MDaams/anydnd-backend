@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AIService } from './ai.service';
-import { EndTurnConfig } from '../game/models/chanceConfig.models';
-import { GameTurn } from '../game/models/turn.models';
-import { Story } from '../story/models/story.model';
+import { EndTurnConfig } from 'src/game/models/chanceConfig.models';
+import { GameTurn } from 'src/game/models/turn.models';
+import { Story } from 'src/story/models/story.model';
 
 describe('AIService', () => {
   let service: AIService;

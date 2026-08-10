@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { GameTurn } from './models/turn.models';
 import { GameTurnService } from './game-turn.service';
-import { EventsService } from '../events/events.service';
-import { CharactersService } from '../characters/characters.service';
-import { GameCharacter } from '../characters/models/gameCharacter.model';
-import { AIService } from '../ai/ai.service';
-import { StoryService } from '../story/story.service';
-import { AppLogger } from '../common/logger.util';
+import { EventsService } from 'src/events/events.service';
+import { CharactersService } from 'src/characters/characters.service';
+import { GameCharacter } from 'src/characters/models/gameCharacter.model';
+import { AIService } from 'src/ai/ai.service';
+import { StoryService } from 'src/story/story.service';
+import { AppLogger } from 'src/common/logger.util';
 import {
   BaseGameEvent,
   EventStatus,
   EventType,
   GameEventFactory,
-} from '../events/models/events.model';
+} from 'src/events/models/events.model';
 import { EndTurnConfig } from './models/chanceConfig.models';
 import { TurnContentDto } from 'src/ai/dto/turnContent.dto';
 import { randomUUID } from 'crypto';
-import { randomNumber } from '../common/helpers.utils';
+import { randomNumber } from 'src/common/helpers.utils';
 import { Story } from 'src/story/models/story.model';
 import { EventAction } from 'src/events/models/action.model';
 

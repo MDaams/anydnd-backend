@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GameTurn } from '../models/turn.models';
-import { BaseGameEvent } from '../../events/models/events.model';
+import { GameTurn } from 'src/game/models/turn.models';
+import { BaseGameEvent } from 'src/events/models/events.model';
 
 export class EndTurnResponseDto {
   @ApiProperty({

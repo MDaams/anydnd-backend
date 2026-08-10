@@ -2,11 +2,11 @@ import { Controller, Get, Post, Body, Put, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { GameService } from './game.service';
 import { GameTurn } from './models/turn.models';
-import { Story } from '../story/models/story.model';
+import { Story } from 'src/story/models/story.model';
 import { CreateGameDto } from './dto/create-game.dto';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
-import { SubmitChoiceDto } from '../events/dto/submitChoice.dto';
-import { BaseGameEvent } from '../events/models/events.model';
+import { SubmitChoiceDto } from 'src/events/dto/submitChoice.dto';
+import { BaseGameEvent } from 'src/events/models/events.model';
 
 @ApiTags('game')
 @Controller('game')

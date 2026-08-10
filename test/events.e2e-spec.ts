@@ -1,12 +1,12 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { AppModule } from 'src/app.module';
 import { App } from 'supertest/types';
-import { AIService } from '../src/ai/ai.service';
-import { GameTurn } from '../src/game/models/turn.models';
-import { GameService } from '../src/game/game.service';
-import { EventsService } from '../src/events/events.service';
+import { AIService } from 'src/ai/ai.service';
+import { GameTurn } from 'src/game/models/turn.models';
+import { GameService } from 'src/game/game.service';
+import { EventsService } from 'src/events/events.service';
 
 describe('EventsController (e2e)', () => {
   let app: INestApplication<App>;
