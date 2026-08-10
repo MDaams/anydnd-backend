@@ -82,16 +82,8 @@ async function generateMermaid() {
 
   const mermaidCode = mermaidLines.join('\n');
 
-  // Lees de bestaande README.md
   let readmeContent = fs.readFileSync('README.md', 'utf8');
 
-  // Definieer de bakens waar de mermaid grafiek tussen moet komen
-  // Zorg dat je in je README.md een lege codeblock zet of markers gebruikt
-  const startMarker = '```mermaid';
-  const endMarker = '```';
-
-  // Zoek de plek op basis van de eerste voorkomst of vervang de placeholder
-  // Een nette manier is om de placeholder ```mermaid\n``` te vervangen:
   const targetPattern = /```mermaid\s*[\s\S]*?```/;
 
   const replacement = `\`\`\`mermaid\n${mermaidCode}\n\`\`\``;
@@ -99,7 +91,6 @@ async function generateMermaid() {
   if (targetPattern.test(readmeContent)) {
     readmeContent = readmeContent.replace(targetPattern, replacement);
   } else {
-    // Fallback als de placeholder mist: voeg hem toe onder Architecture Overview
     readmeContent += `\n\n## Generated Architecture\n${replacement}\n`;
   }
 
