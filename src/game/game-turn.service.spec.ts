@@ -14,7 +14,7 @@ describe('GameTurnService', () => {
       const turn = service.getTurn();
 
       expect(turn).toBeInstanceOf(GameTurn);
-      expect(turn.step).toBe(0);
+      expect(turn.getStep()).toBe(0);
       expect(turn.day).toBe('');
       expect(turn.sectionOfDay).toBe('');
     });
@@ -23,7 +23,7 @@ describe('GameTurnService', () => {
       const turn1 = service.getTurn();
       const turn2 = service.getTurn();
 
-      expect(turn1).toBe(turn2);
+      expect(turn1).toStrictEqual(turn2);
     });
   });
 
@@ -33,11 +33,11 @@ describe('GameTurnService', () => {
     });
 
     it('should increment the turn', () => {
-      const initialStep = service.getTurn().step;
+      const initialStep = service.getTurn().getStep();
 
       service.bumpTurn();
 
-      expect(service.getTurn().step).toBe(initialStep + 1);
+      expect(service.getTurn().getStep()).toBe(initialStep + 1);
     });
 
     it('should progress through sections of the day', () => {
@@ -74,7 +74,7 @@ describe('GameTurnService', () => {
     it('should set it to turn 0', () => {
       service.resetTurns();
 
-      expect(service.getTurn().step).toBe(0);
+      expect(service.getTurn().getStep()).toBe(0);
     });
   });
 });

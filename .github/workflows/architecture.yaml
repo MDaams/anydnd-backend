@@ -3,7 +3,7 @@ name: Generate Architecture Docs
 on:
   push:
     branches:
-      - '**'
+      - 'master'
 
 jobs:
   generate-docs:

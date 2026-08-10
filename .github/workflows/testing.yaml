@@ -1,4 +1,4 @@
-name: Push run
+name: Run unit & e2e specs
 
 on:
   push:

@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Put, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { GameService } from './game.service';
 import { GameTurn } from './models/turn.models';
 import { Story } from '../story/models/story.model';
 import { CreateGameDto } from './dto/create-game.dto';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
+import { SubmitChoiceDto } from '../events/dto/submitChoice.dto';
+import { GameEvent } from '../events/models/events.model';
 
 @ApiTags('game')
 @Controller('game')
@@ -76,5 +78,24 @@ export class GameController {
     );
     await this.gameService.createNewGame(story);
     return this.gameService.getTurn();
+  }
+
+  @Put(':id/submit-choice')
+  @ApiOperation({ summary: 'Submit a choice for an event' })
+  @ApiBody({ type: SubmitChoiceDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Choice submitted successfully',
+    type: [GameEvent],
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Failed to submit choice (event not found or invalid choice)',
+  })
+  submitChoice(
+    @Param('id') eventId: string,
+    @Body() dto: SubmitChoiceDto,
+  ): GameEvent {
+    return this.gameService.submitChoice(eventId, dto.intent, dto.choice);
   }
 }

@@ -66,33 +66,4 @@ describe('EventsController', () => {
       expect(mockService.clearEventLog).toHaveBeenCalled();
     });
   });
-
-  describe('PUT /events/:id/submit-choice', () => {
-    it('should submit a choice for an event', async () => {
-      const eventId = '123';
-      const choice = 'Option 1';
-      const intent = 'Talk';
-
-      const result = await controller.submitChoice(eventId, { choice, intent });
-
-      expect(result).toStrictEqual(mockGameEvents);
-      expect(mockGameTurnService.getTurn).toHaveBeenCalled();
-      expect(mockService.submitChoice).toHaveBeenCalledWith(
-        eventId,
-        intent,
-        choice,
-        mockGameTurn,
-      );
-    });
-
-    it('should return updated event log', async () => {
-      const result = await controller.submitChoice('123', {
-        choice: 'Option 1',
-        intent: 'Talk',
-      });
-
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toStrictEqual(mockGameEvents);
-    });
-  });
 });

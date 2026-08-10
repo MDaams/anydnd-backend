@@ -5,10 +5,16 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { AIService } from '../src/ai/ai.service';
 import { CreateGameDto } from 'src/game/dto/create-game.dto';
+import { randomUUID } from 'crypto';
+import { EventAction } from '../src/events/models/action.model';
+import { EventStatus } from '../src/events/models/events.model';
+import { GameTurn } from '../src/game/models/turn.models';
+import { EventsService } from '../src/events/events.service';
 
 describe('GameController (e2e)', () => {
   let app: INestApplication<App>;
   let getServer: () => any;
+  let eventsService: EventsService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,6 +37,7 @@ describe('GameController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    eventsService = app.get(EventsService);
     getServer = () => request(app.getHttpServer());
   });
 
@@ -224,6 +231,50 @@ describe('GameController (e2e)', () => {
       it(`should fail when ${reason}`, () => {
         return getServer().post('/game').send(dto).expect(400);
       });
+    });
+  });
+
+  describe('PUT /events/:id/submit-choice', () => {
+    it('should submit a choice for an event', async () => {
+      const choice: string = 'Test Choice';
+      const intent: string = 'Talk';
+
+      const testEvent = {
+        id: randomUUID(),
+        type: 'WORLD' as any,
+        title: 'Test Event',
+        description: 'A test event',
+        status: EventStatus.PENDING,
+        createdAt: new GameTurn(1),
+        action: new EventAction(choice, intent, 1),
+        wasCreatedLastTurn: jest.fn(),
+        wasResolvedLastTurn: jest.fn(),
+      };
+      eventsService.addEvent(testEvent);
+
+      return getServer()
+        .put(`/game/${testEvent.id}/submit-choice`)
+        .send({ choice, intent })
+        .expect(200)
+        .expect((response) => {
+          const updatedEvent = response.body;
+          expect(updatedEvent.action.action).toBe(choice);
+          expect(updatedEvent.status).toBe(EventStatus.RESOLVED);
+        });
+    });
+
+    it('should return 500 when event not found', () => {
+      return getServer()
+        .put('/game/non-existent-id/submit-choice')
+        .send({ choice: 'Option 1', intent: 'Talk' })
+        .expect(500);
+    });
+
+    it('should validate choice is not empty', () => {
+      return getServer()
+        .put('/game/some-id/submit-choice')
+        .send({ choice: '', intent: 'Talk' })
+        .expect(400);
     });
   });
 

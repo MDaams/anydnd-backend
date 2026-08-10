@@ -7,7 +7,7 @@ export class GameTurnService {
   private gameTurn: GameTurn = new GameTurn(0);
 
   getTurn(): GameTurn {
-    return this.gameTurn;
+    return this.gameTurn.clone();
   }
 
   resetTurns() {

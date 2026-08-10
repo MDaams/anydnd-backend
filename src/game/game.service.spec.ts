@@ -2,7 +2,7 @@ import { GameService } from './game.service';
 import { GameTurnService } from './game-turn.service';
 import { CharactersService } from '../characters/characters.service';
 import { EventsService } from '../events/events.service';
-import { AIService } from '../ai/strict.service';
+import { AIService } from '../ai/ai.service';
 import { StoryService } from '../story/story.service';
 import * as helpersUtils from '../common/helpers.utils';
 import { Story } from '../story/models/story.model';
