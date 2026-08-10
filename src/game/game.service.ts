@@ -47,8 +47,7 @@ export class GameService {
 
   private debumpTurn() {
     AppLogger.log(`⚠️  Attempting to rollback turn due to error`);
-    // Since we can't easily reverse the turn state, we log the attempt
-    // In a real scenario, you'd want to implement proper transaction rollback
+    this.gameTurnService.debumpTurn();
   }
 
   private shouldCreateCharacterEvent(): boolean {

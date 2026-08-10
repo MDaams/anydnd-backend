@@ -20,4 +20,11 @@ export class GameTurnService {
       `📅 Turn bumped to: Day ${this.gameTurn.day} ${this.gameTurn.sectionOfDay} (Step ${this.gameTurn.getStep()})`,
     );
   }
+
+  debumpTurn() {
+    this.gameTurn.removeStep();
+    AppLogger.log(
+      `📅 Turn debumped to: Day ${this.gameTurn.day} ${this.gameTurn.sectionOfDay} (Step ${this.gameTurn.getStep()})`,
+    );
+  }
 }

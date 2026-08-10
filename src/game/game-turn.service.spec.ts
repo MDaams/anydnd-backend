@@ -70,6 +70,50 @@ describe('GameTurnService', () => {
     });
   });
 
+  describe('debumpTurn', () => {
+    beforeEach(() => {
+      service.resetTurns();
+    });
+
+    it('should remove one turn', () => {
+      const initialStep = service.getTurn().getStep();
+
+      service.debumpTurn();
+
+      expect(service.getTurn().getStep()).toBe(initialStep - 1);
+    });
+
+    it('should progress through sections of the day', () => {
+      service.bumpTurn();
+      expect(service.getTurn().sectionOfDay).toBe('Morning');
+
+      service.bumpTurn();
+      expect(service.getTurn().sectionOfDay).toBe('Afternoon');
+
+      service.debumpTurn();
+      expect(service.getTurn().sectionOfDay).toBe('Morning');
+
+      service.bumpTurn();
+      expect(service.getTurn().sectionOfDay).toBe('Afternoon');
+    });
+
+    it('should go back to the previous day after morning', () => {
+      expect(service.getTurn().day).toBe('');
+      expect(service.getTurn().sectionOfDay).toBe('');
+
+      // Bump through all sections of Monday
+      service.bumpTurn(); // Morning
+      service.bumpTurn(); // Afternoon
+      service.bumpTurn(); // Evening
+      service.bumpTurn(); // Night
+      service.bumpTurn(); // Next day Morning
+      service.debumpTurn(); // Prev day Night
+
+      expect(service.getTurn().day).toBe('Monday');
+      expect(service.getTurn().sectionOfDay).toBe('Night');
+    });
+  });
+
   describe('resetTurns', () => {
     it('should set it to turn 0', () => {
       service.resetTurns();
