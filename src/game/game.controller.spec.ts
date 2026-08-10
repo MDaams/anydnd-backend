@@ -3,11 +3,7 @@ import { GameController } from './game.controller';
 import { GameService } from './game.service';
 import { GameTurn } from './models/turn.models';
 import { CreateGameDto } from './dto/create-game.dto';
-import {
-  EventStatus,
-  EventType,
-  GameEvent,
-} from 'src/events/models/events.model';
+import { EventStatus, EventType } from 'src/events/models/events.model';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
 import { GameTurnService } from './game-turn.service';
 

@@ -1,4 +1,3 @@
-// In jest.config.js or test configuration
 process.env.NODE_ENV = 'test';
 
 module.exports = {
@@ -11,4 +10,7 @@ module.exports = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: 'src/coverage',
   testEnvironment: 'node',
+  moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/$1',
+  },
 };
