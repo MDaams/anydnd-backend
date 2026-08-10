@@ -2,12 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ModulesContainer } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as fs from 'fs';
+import * as path from 'path';
 
 if (!process.env.GEMINI_API_KEY) {
   process.env.GEMINI_API_KEY = 'dummy-key-for-docs-generation';
 }
 
-// Lijst met NestJS interne typen/woorden die we willen negeren
 const ignoredNames = new Set([
   'ModuleRef',
   'Reflector',
@@ -17,69 +17,99 @@ const ignoredNames = new Set([
   'InternalCoreModule',
 ]);
 
+function getAllTsFiles(dir: string, fileList: string[] = []): string[] {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    if (fs.statSync(filePath).isDirectory()) {
+      if (file !== 'node_modules' && file !== 'dist') {
+        getAllTsFiles(filePath, fileList);
+      }
+    } else if (filePath.endsWith('.ts')) {
+      fileList.push(filePath);
+    }
+  }
+  return fileList;
+}
+
+const isDataModel = (name: string) => {
+  return (
+    name.endsWith('Dto') ||
+    name.endsWith('Model') ||
+    name.endsWith('Entity') ||
+    name.endsWith('Repository') ||
+    name.endsWith('Event')
+  );
+};
+
+const isValidComponent = (name: string) => {
+  return (
+    name &&
+    !ignoredNames.has(name) &&
+    !name.startsWith('_') &&
+    isNaN(Number(name))
+  );
+};
+
 async function generateMermaid() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const modulesContainer = app.get(ModulesContainer);
 
-  const mermaidLines: string[] = ['graph TD'];
-  const addedRelations = new Set<string>();
+  const allRelations = new Set<string>();
 
-  // Helper om te controleren of een naam valide is
-  const isValidComponent = (name: string) => {
-    return (
-      name &&
-      !ignoredNames.has(name) &&
-      !name.startsWith('_') &&
-      isNaN(Number(name))
-    );
-  };
-
+  // 1. Gather runtime DI connections
   for (const [_, moduleRef] of modulesContainer.entries()) {
-    // Haal alle controllers op van deze module
-    if (moduleRef.controllers) {
-      for (const [_, controller] of moduleRef.controllers.entries()) {
-        const ctrlClass = controller.metatype;
-        if (!ctrlClass) continue;
-        const ctrlName = ctrlClass.name;
+    const processEntries = (entries: Map<any, any> | undefined) => {
+      if (!entries) return;
+      for (const [_, item] of entries.entries()) {
+        const cls = item.metatype;
+        if (!cls) continue;
+        const clsName = cls.name;
+        if (!isValidComponent(clsName)) continue;
 
-        if (!isValidComponent(ctrlName)) continue;
-
-        // Vraag via Reflect de constructor parameters (dependencies) op
-        const dependencies =
-          Reflect.getMetadata('design:paramtypes', ctrlClass) || [];
-
+        const dependencies = Reflect.getMetadata('design:paramtypes', cls) || [];
         for (const dep of dependencies) {
           const depName = dep.name;
           if (isValidComponent(depName)) {
-            const line = `    ${ctrlName} --> ${depName}`;
-            if (!addedRelations.has(line)) {
-              addedRelations.add(line);
-              mermaidLines.push(line);
-            }
+            allRelations.add(`    ${clsName} --> ${depName}`);
           }
         }
       }
+    };
+
+    processEntries(moduleRef.controllers);
+    processEntries(moduleRef.providers);
+  }
+
+  // 2. Statically scan source files for type/interface/class references
+  const srcDir = path.join(process.cwd(), 'src');
+  if (fs.existsSync(srcDir)) {
+    const allFiles = getAllTsFiles(srcDir);
+    const fileContentMap = new Map<string, { content: string; defined: string[] }>();
+    const symbolToFile = new Map<string, string>();
+
+    for (const file of allFiles) {
+      const content = fs.readFileSync(file, 'utf-8');
+      const matches = content.match(/(?:class|interface|type)\s+([A-Za-z0-9_]+)/g) || [];
+      const definedSymbols = matches.map((m) => 
+        m.replace(/class|interface|type/, '').trim()
+      );
+      
+      fileContentMap.set(file, { content, defined: definedSymbols });
+      for (const sym of definedSymbols) {
+        symbolToFile.set(sym, file);
+      }
     }
 
-    // Haal ook de providers (services) op om te kijken of *zij* andere services aanroepen
-    if (moduleRef.providers) {
-      for (const [_, provider] of moduleRef.providers.entries()) {
-        const providerClass = provider.metatype;
-        if (!providerClass) continue;
-        const providerName = providerClass.name;
+    for (const [file, { content, defined }] of fileContentMap.entries()) {
+      for (const sourceSymbol of defined) {
+        if (!isValidComponent(sourceSymbol)) continue;
 
-        if (!isValidComponent(providerName)) continue;
-
-        const dependencies =
-          Reflect.getMetadata('design:paramtypes', providerClass) || [];
-
-        for (const dep of dependencies) {
-          const depName = dep.name;
-          if (isValidComponent(depName)) {
-            const line = `    ${providerName} --> ${depName}`;
-            if (!addedRelations.has(line)) {
-              addedRelations.add(line);
-              mermaidLines.push(line);
+        for (const [targetSymbol, _] of symbolToFile.entries()) {
+          if (isDataModel(targetSymbol) && sourceSymbol !== targetSymbol) {
+            const regex = new RegExp(`\\b${targetSymbol}\\b`, 'g');
+            if (regex.test(content)) {
+              allRelations.add(`    ${sourceSymbol} --> ${targetSymbol}`);
             }
           }
         }
@@ -87,13 +117,16 @@ async function generateMermaid() {
     }
   }
 
-  const markdownContent = `# System Architecture\n\n\`\`\`mermaid\n${mermaidLines.join('\n')}\n\`\`\`\n`;
-  fs.writeFileSync('architecture.md', markdownContent);
+  const mermaidContent = [
+    'graph TD',
+    ...Array.from(allRelations),
+  ].join('\n');
+
+  const markdownContent = `# Full System Architecture\n\n\`\`\`mermaid\n${mermaidContent}\n\`\`\`\n`;
+  fs.writeFileSync('full-architecture.md', markdownContent);
 
   await app.close();
-  console.log(
-    'Architecture.md successfully updated with clean dependency graph!',
-  );
+  console.log('full-architecture.md successfully generated as a flat, unified graph!');
 }
 
 generateMermaid();
