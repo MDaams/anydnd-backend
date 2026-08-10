@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GameEvent } from '../../events/models/events.model';
+import { CharacterEvent } from '../../events/models/events.model';
 
 export class CharacterDto {
   @ApiProperty({ example: 'uuid-string' })
@@ -12,5 +12,5 @@ export class CharacterDto {
   summary!: string;
 
   @ApiProperty({ type: [Object], description: 'Log of game events' })
-  eventLog!: GameEvent[];
+  eventLog!: CharacterEvent[];
 }

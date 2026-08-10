@@ -1,8 +1,12 @@
 import { EventsService } from './events.service';
 import {
-  GameEvent,
+  BaseGameEvent,
+  CharacterEvent,
   EventStatus,
   EventType,
+  GameEventFactory,
+  SceneEvent,
+  WorldEvent,
 } from '../events/models/events.model';
 import {
   InternalServerErrorException,
@@ -26,13 +30,13 @@ describe('EventsService', () => {
   });
 
   it('should clear events', async () => {
-    const characterEvent = new GameEvent();
+    const characterEvent = new BaseGameEvent();
     characterEvent.type = EventType.CHARACTER;
     service.addEvent(characterEvent);
     service.addEvent(characterEvent);
     service.addEvent(characterEvent);
 
-    let result: Array<GameEvent> = service.getEventLog();
+    let result: Array<BaseGameEvent> = service.getEventLog();
     expect(result.length).toBe(3);
 
     service.clearEventLog();
@@ -45,15 +49,18 @@ describe('EventsService', () => {
     let eventId: string;
 
     beforeEach(() => {
-      const event: GameEvent = new GameEvent();
+      const event: SceneEvent = new SceneEvent();
       event.id = randomUUID();
       event.status = EventStatus.PENDING;
+      event.type = EventType.SCENE;
       service.addEvent(event);
       eventId = event.id;
     });
 
     it('should submit a valid choice for an event', () => {
-      const result = service.submitChoice(eventId, 'Talk', 'Yes', mockGameTurn);
+      const result: SceneEvent = GameEventFactory.fromPlain(
+        service.submitChoice(eventId, 'Talk', 'Yes', mockGameTurn),
+      );
 
       expect(result).toBeDefined();
       expect(result?.action?.getAction()).toBe('Yes');
@@ -66,11 +73,9 @@ describe('EventsService', () => {
       jest.spyOn(helpersUtils, 'randomNumber').mockImplementation(() => {
         return 0; // Return min to guarantee chance conditions pass
       });
-      const result: GameEvent = service.submitChoice(
-        eventId,
-        'Talk',
-        'Yes',
-        mockGameTurn,
+
+      const result: CharacterEvent = GameEventFactory.fromPlain(
+        service.submitChoice(eventId, 'Talk', 'Yes', mockGameTurn),
       );
 
       expect(result).toBeDefined();
@@ -105,16 +110,35 @@ describe('EventsService', () => {
       const actionIntent: string = 'Talk';
       const action: string = 'Yes';
       const gameTurn: GameTurn = new GameTurn(1);
-      const result = service.submitChoice(
-        eventId,
-        actionIntent,
-        action,
-        gameTurn,
+
+      const result: SceneEvent = GameEventFactory.fromPlain(
+        service.submitChoice(eventId, actionIntent, action, gameTurn),
       );
 
       expect(result.action?.getIntent()).toBe(actionIntent);
       expect(result.action?.getCreatedAtStep()).toBe(gameTurn.getStep());
       expect(result.action?.getAction()).toBe(action);
+    });
+
+    it('should throw unprocessable entity for WorldEvent', () => {
+      eventId = 'random-uuid';
+      const worldEvent: WorldEvent = new WorldEvent();
+      worldEvent.id = eventId;
+      worldEvent.type = EventType.WORLD;
+
+      service.clearEventLog();
+      service.addEvent(worldEvent);
+      const initialEvent = service.getEventLog().find((e) => e.id === eventId);
+
+      expect(initialEvent?.type).toBe(EventType.WORLD);
+
+      expect(() =>
+        service.submitChoice(eventId, 'Talk', 'Yes', new GameTurn(1)),
+      ).toThrow(UnprocessableEntityException);
+    });
+
+    afterEach(() => {
+      service.clearEventLog();
     });
   });
 });

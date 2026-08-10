@@ -3,7 +3,14 @@ import {
   InternalServerErrorException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { EventStatus, GameEvent } from './models/events.model';
+import {
+  BaseGameEvent,
+  CharacterEvent,
+  EventStatus,
+  GameEventFactory,
+  SceneEvent,
+  WorldEvent,
+} from './models/events.model';
 import { GameCharacter } from '../characters/models/gameCharacter.model';
 import { randomNumber } from '../common/helpers.utils';
 import { GameTurn } from 'src/game/models/turn.models';
@@ -11,17 +18,19 @@ import { EventAction } from './models/action.model';
 
 @Injectable()
 export class EventsService {
-  private eventLog: Array<GameEvent> = [];
+  private eventLog: Array<BaseGameEvent> = [];
 
   constructor() {}
 
   hasPendingEvent(character: GameCharacter) {
     return (
       this.eventLog.filter((event) => {
-        return (
-          event.characterId == character.id &&
-          event.status == EventStatus.PENDING
-        );
+        if (event instanceof CharacterEvent) {
+          return (
+            event.characterId == character.id &&
+            event.status == EventStatus.PENDING
+          );
+        }
       }).length > 0
     );
   }
@@ -30,7 +39,7 @@ export class EventsService {
     this.eventLog = [];
   }
 
-  getEventLog(): Array<GameEvent> {
+  getEventLog(): Array<BaseGameEvent> {
     return this.eventLog;
   }
 
@@ -39,7 +48,7 @@ export class EventsService {
     intent: string,
     choice: string,
     currentTurn: GameTurn,
-  ): GameEvent {
+  ): BaseGameEvent {
     const eventIndex = this.eventLog.findIndex((event) => event.id === eventId);
 
     if (choice === '')
@@ -50,24 +59,23 @@ export class EventsService {
       );
     }
 
-    const event = this.eventLog[eventIndex];
+    const event = GameEventFactory.fromPlain(this.eventLog[eventIndex]);
 
-    // Update the event with the chosen option and mark as resolved
-    const updatedEvent = new GameEvent();
-    Object.assign(updatedEvent, event, {
-      ...event,
-      action: new EventAction(choice, intent, currentTurn.getStep()),
-      status: EventStatus.RESOLVED,
-      chosenOptionSucces: randomNumber(100) <= 50,
-      choiceAt: currentTurn.clone(),
-    });
+    if (event instanceof CharacterEvent || event instanceof SceneEvent) {
+      event.action = new EventAction(choice, intent, currentTurn.getStep());
+      event.status = EventStatus.RESOLVED;
+      event.chosenOptionSucces = randomNumber(100) <= 50;
+      event.createdAt = currentTurn.clone();
+      this.eventLog[eventIndex] = event;
+      return event;
+    }
 
-    this.eventLog[eventIndex] = updatedEvent;
-
-    return updatedEvent;
+    throw new UnprocessableEntityException(
+      'Cannot submit a choice for a Worldevent',
+    );
   }
 
-  addEvent(event: GameEvent): void {
+  addEvent(event: BaseGameEvent): void {
     this.eventLog = [...this.eventLog, event];
   }
 }
