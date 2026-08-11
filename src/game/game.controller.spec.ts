@@ -17,11 +17,7 @@ describe('GameController', () => {
   let mockGameService: any;
   let mockGameTurnService: any;
 
-  const mockGameTurn: GameTurn = {
-    step: 1,
-    day: 'Monday',
-    sectionOfDay: 'Morning',
-  } as any;
+  const mockGameTurn: GameTurn = new GameTurn(1);
 
   const mockGameEvent: CharacterEvent = {
     id: '123',
