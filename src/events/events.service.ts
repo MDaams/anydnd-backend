@@ -7,7 +7,6 @@ import {
   BaseGameEvent,
   CharacterEvent,
   EventStatus,
-  GameEventFactory,
   SceneEvent,
 } from './models/events.model';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
@@ -58,7 +57,7 @@ export class EventsService {
       );
     }
 
-    const event = GameEventFactory.fromPlain(this.eventLog[eventIndex]);
+    const event = this.eventLog[eventIndex];
 
     if (event instanceof CharacterEvent || event instanceof SceneEvent) {
       event.action = new EventAction(choice, intent, currentTurn.getStep());
