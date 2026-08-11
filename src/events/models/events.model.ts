@@ -114,7 +114,7 @@ export const EventUtils = {
 export class GameEventFactory {
   static fromPlain(data: {
     type: EventType;
-    [key: string]: any;
+    [key: string]: unknown;
   }): BaseGameEvent {
     switch (data.type) {
       case EventType.WORLD:

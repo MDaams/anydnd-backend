@@ -13,7 +13,7 @@ export class AppLogger {
     }
   }
 
-  static error(message: string, error?: any): void {
+  static error(message: string, error?: unknown): void {
     if (!this.isTestMode()) {
       console.error(message, error);
     }
