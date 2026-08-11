@@ -194,7 +194,7 @@ describe('GameService', () => {
       try {
         await service.endTurn();
       } catch (e) {
-        // Expected to throw
+        expect(e).toBeDefined();
       }
 
       // Verify that bumpTurn happened followed by the rollback (debumpTurn)
@@ -209,7 +209,7 @@ describe('GameService', () => {
       try {
         await service.endTurn();
       } catch (e) {
-        // Expected to throw
+        expect(e).toBeDefined();
       }
 
       // addEvent should not be called after bumpTurn (only internal setup calls)

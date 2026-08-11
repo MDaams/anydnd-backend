@@ -31,4 +31,8 @@ async function bootstrap() {
     `Swagger UI available at http://localhost:${process.env.PORT ?? 3000}/api`,
   );
 }
-bootstrap();
+
+void bootstrap().catch((err) => {
+  console.error('Error during application startup:', err);
+  process.exit(1);
+});

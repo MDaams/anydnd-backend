@@ -9,7 +9,6 @@ import {
   EventStatus,
   GameEventFactory,
   SceneEvent,
-  WorldEvent,
 } from './models/events.model';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
 import { randomNumber } from 'src/common/helpers.utils';

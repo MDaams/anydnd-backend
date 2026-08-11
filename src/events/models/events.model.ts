@@ -31,6 +31,10 @@ export class BaseGameEvent {
 
   @ApiProperty({ type: () => GameTurn })
   createdAt!: GameTurn;
+
+  toString(): string {
+    return `Event: "${this.title}"`;
+  }
 }
 
 export class WorldEvent extends BaseGameEvent {

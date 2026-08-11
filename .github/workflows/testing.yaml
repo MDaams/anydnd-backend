@@ -3,10 +3,9 @@ name: Run unit & e2e specs
 on:
   push:
     branches:
-      - '**'
+      - 'master'
   pull_request:
     branches:
-      - main
       - master
 
 jobs:

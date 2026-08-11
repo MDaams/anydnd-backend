@@ -18,7 +18,6 @@ import { TurnContentDto } from 'src/ai/dto/turnContent.dto';
 import { randomUUID } from 'crypto';
 import { randomNumber } from 'src/common/helpers.utils';
 import { Story } from 'src/story/models/story.model';
-import { EventAction } from 'src/events/models/action.model';
 
 @Injectable()
 export class GameService {

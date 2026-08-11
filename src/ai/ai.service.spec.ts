@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AIService } from './ai.service';
 import { EndTurnConfig } from 'src/game/models/chanceConfig.models';
 import { GameTurn } from 'src/game/models/turn.models';
-import { Story } from 'src/story/models/story.model';
 
 describe('AIService', () => {
   let service: AIService;
@@ -58,7 +57,7 @@ describe('AIService', () => {
         year: '2024',
         setting: 'Modern Prison',
         language: 'Dutch',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];
@@ -85,7 +84,7 @@ describe('AIService', () => {
         tone: 'Gritty',
         year: '2024',
         setting: 'Modern Prison',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];
@@ -114,7 +113,7 @@ describe('AIService', () => {
         tone: 'Gritty',
         year: '2024',
         setting: 'Modern Prison',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];
@@ -142,7 +141,7 @@ describe('AIService', () => {
         tone: 'Gritty',
         year: '2024',
         setting: 'Modern Prison',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];
@@ -168,7 +167,7 @@ describe('AIService', () => {
         tone: 'Gritty',
         year: '2024',
         setting: 'Modern Prison',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];
@@ -194,7 +193,7 @@ describe('AIService', () => {
         tone: 'Gritty',
         year: '2024',
         setting: 'Modern Prison',
-      } as Story;
+      };
       endTurnConfig.characters = [];
       endTurnConfig.pastCharacterEvents = [];
       endTurnConfig.pastWorldEvents = [];

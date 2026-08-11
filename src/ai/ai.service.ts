@@ -91,15 +91,6 @@ export class AIService {
       'Er is een fout opgetreden bij het genereren van turn content.',
     );
 
-    if (
-      result.sceneEvent &&
-      (!result.sceneEvent.title ||
-        result.sceneEvent.title === 'Empty' ||
-        !result.sceneEvent.predefinedOptions?.length)
-    ) {
-      (result as any).sceneEvent = null;
-    }
-
     AppLogger.log(`✅ AI Service: Generated content`);
     AppLogger.log(
       `  📍 World Event: "${result.worldEvent.title}" (ASCII Art: ${result.worldEvent.asciiArt?.length || 0} chars)`,
@@ -199,7 +190,7 @@ export class AIService {
             .join('\n')
         : 'No character decisions made last turn.';
 
-    let outputLanguage: string =
+    const outputLanguage: string =
       endTurnConfig.storySettings.language || 'English';
     const playerRole = "I am neo from 'the matrix'.";
 

@@ -17,7 +17,7 @@ export class GameTurn {
   day: string = '';
   sectionOfDay: string = '';
 
-  constructor(step) {
+  constructor(step: number) {
     this.step = step;
     this.day = this.getDay(this.step);
     this.sectionOfDay = this.getSectionOfDay(this.step);
