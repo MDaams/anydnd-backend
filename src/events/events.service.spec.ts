@@ -7,17 +7,17 @@ import {
   GameEventFactory,
   SceneEvent,
   WorldEvent,
-} from '../events/models/events.model';
+} from 'src/events/models/events.model';
 import {
   InternalServerErrorException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import * as helpersUtils from '../common/helpers.utils';
-import { GameTurn } from '../game/models/turn.models';
+import * as helpersUtils from 'src/common/helpers.utils';
+import { GameTurn } from 'src/game/models/turn.models';
 import { ActionIntent } from './models/action.model';
 
-jest.mock('../common/helpers.utils');
+jest.mock('src/common/helpers.utils');
 
 describe('EventsService', () => {
   let service: EventsService;

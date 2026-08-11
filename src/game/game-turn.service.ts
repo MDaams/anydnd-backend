@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GameTurn } from './models/turn.models';
-import { AppLogger } from '../common/logger.util';
+import { AppLogger } from 'src/common/logger.util';
 
 @Injectable()
 export class GameTurnService {

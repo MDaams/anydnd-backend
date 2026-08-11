@@ -1,4 +1,4 @@
-import { AppLogger } from '../../common/logger.util';
+import { AppLogger } from 'src/common/logger.util';
 
 const DAYS_OF_WEEK: string[] = [
   'Monday',
@@ -46,9 +46,11 @@ export class GameTurn {
   }
 
   getDay(step: number): string {
-    return DAYS_OF_WEEK[
-      Math.floor((step - 1) / SECTIONS_OF_DAY.length) % DAYS_OF_WEEK.length
-    ] || '';
+    return (
+      DAYS_OF_WEEK[
+        Math.floor((step - 1) / SECTIONS_OF_DAY.length) % DAYS_OF_WEEK.length
+      ] || ''
+    );
   }
 
   getSectionOfDay(step: number): string {

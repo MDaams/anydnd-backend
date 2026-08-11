@@ -3,9 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from '../src/app.module';
-import { AIService } from '../src/ai/ai.service';
-import { CharactersService } from '../src/characters/characters.service';
+import { AppModule } from 'src/app.module';
+import { AIService } from 'src/ai/ai.service';
+import { CharactersService } from 'src/characters/characters.service';
 
 describe('CharactersController (e2e)', () => {
   let app: INestApplication<App>;

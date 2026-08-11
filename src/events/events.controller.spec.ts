@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
-import { GameTurnService } from '../game/game-turn.service';
+import { GameTurnService } from 'src/game/game-turn.service';
 import { GameEvent, EventType, EventStatus } from './models/events.model';
-import { GameTurn } from '../game/models/turn.models';
+import { GameTurn } from 'src/game/models/turn.models';
 
 describe('EventsController', () => {
   let controller: EventsController;

@@ -1,13 +1,13 @@
 import { GameService } from './game.service';
 import { GameTurnService } from './game-turn.service';
-import { CharactersService } from '../characters/characters.service';
-import { EventsService } from '../events/events.service';
-import { AIService } from '../ai/ai.service';
-import { StoryService } from '../story/story.service';
-import * as helpersUtils from '../common/helpers.utils';
-import { Story } from '../story/models/story.model';
+import { CharactersService } from 'src/characters/characters.service';
+import { EventsService } from 'src/events/events.service';
+import { AIService } from 'src/ai/ai.service';
+import { StoryService } from 'src/story/story.service';
+import * as helpersUtils from 'src/common/helpers.utils';
+import { Story } from 'src/story/models/story.model';
 
-jest.mock('../common/helpers.utils');
+jest.mock('src/common/helpers.utils');
 
 describe('GameService', () => {
   let service: GameService;
