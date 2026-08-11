@@ -45,7 +45,7 @@ GameController
 ## Tech Stack
 
 * Framework: NestJS (TypeScript)
-* Testing: Jest, Supertest
+* Testing: Jest (Unit), Supertest (E2E)
 * Linting: Eslint
 
 # Getting Started
