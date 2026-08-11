@@ -1,32 +1,35 @@
-name: Generate Architecture Docs
+name: Update Architecture Docs
 
 on:
-  pull_request:
-    branches:
-      - master
+  workflow_run:
+    workflows: ['Build']
+    types:
+      - completed
 
 jobs:
-  generate-docs:
+  update-docs:
     runs-on: ubuntu-latest
-
-    # Vereist permissie om wijzigingen terug te kunnen schrijven naar de repository
-    permissions:
-      contents: write
-
+    # Only run if build succeeded AND it originated from a pull request
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Generate Architecture Diagram
+      - name: Build Application
+        run: npm run build
+
+      - name: Generate Architecture Docs
         run: npm run docs:arch
 
       - name: Commit architecture updates if changed
@@ -34,10 +37,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage the exact filename with proper casing
           git add README.md
 
-          # Check if there are any actual modifications to commit
           if git status --porcelain | grep -q .; then
             git commit -m "docs: auto-update architecture diagram [skip ci]"
             git push

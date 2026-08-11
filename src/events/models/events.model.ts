@@ -31,6 +31,10 @@ export class BaseGameEvent {
 
   @ApiProperty({ type: () => GameTurn })
   createdAt!: GameTurn;
+
+  toString(): string {
+    return `Event: "${this.title}"`;
+  }
 }
 
 export class WorldEvent extends BaseGameEvent {
@@ -110,7 +114,7 @@ export const EventUtils = {
 export class GameEventFactory {
   static fromPlain(data: {
     type: EventType;
-    [key: string]: any;
+    [key: string]: unknown;
   }): BaseGameEvent {
     switch (data.type) {
       case EventType.WORLD:

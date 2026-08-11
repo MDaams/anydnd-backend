@@ -2,33 +2,31 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
 import { GameTurnService } from 'src/game/game-turn.service';
-import { GameEvent, EventType, EventStatus } from './models/events.model';
+import { EventType, EventStatus, CharacterEvent } from './models/events.model';
 import { GameTurn } from 'src/game/models/turn.models';
 
 describe('EventsController', () => {
   let controller: EventsController;
-  let mockService: any;
-  let mockGameTurnService: any;
+  let mockService: Partial<jest.Mocked<EventsService>>;
+  let mockGameTurnService: Partial<jest.Mocked<GameTurnService>>;
 
   const mockGameTurn = new GameTurn(1);
 
-  const mockGameEvents: GameEvent[] = [
+  const mockGameEvents: CharacterEvent[] = [
     {
       id: '123',
-      type: EventType.WORLD,
+      type: EventType.CHARACTER,
       status: EventStatus.PENDING,
       title: 'Test Event',
       description: 'A test event',
       predefinedOptions: ['Option 1', 'Option 2'],
       createdAt: mockGameTurn,
-    } as GameEvent,
+    },
   ];
 
   beforeEach(async () => {
     mockService = {
       getEventLog: jest.fn(() => mockGameEvents),
-      generateWorldEvent: jest.fn().mockResolvedValue(mockGameEvents),
-      generateCharacterEvent: jest.fn().mockResolvedValue(mockGameEvents),
       submitChoice: jest.fn().mockResolvedValue(mockGameEvents),
       clearEventLog: jest.fn(),
     };

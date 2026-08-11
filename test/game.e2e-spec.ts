@@ -154,7 +154,7 @@ describe('GameController (e2e)', () => {
     it('should include ASCII art in character events when ending turn', async () => {
       await getServer().post('/game/end-turn').expect(201);
 
-      const eventsResponse = await getServer().get('/events').expect(200);
+      await getServer().get('/events').expect(200);
       const response = await getServer().post('/game/end-turn').expect(201);
 
       const characterEvents = response.body.events;

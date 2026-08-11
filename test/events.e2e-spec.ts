@@ -6,12 +6,10 @@ import { App } from 'supertest/types';
 import { AIService } from 'src/ai/ai.service';
 import { GameTurn } from 'src/game/models/turn.models';
 import { GameService } from 'src/game/game.service';
-import { EventsService } from 'src/events/events.service';
 
 describe('EventsController (e2e)', () => {
   let app: INestApplication<App>;
   let getServer: () => any;
-  let eventsService: EventsService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,7 +30,6 @@ describe('EventsController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
-    eventsService = moduleFixture.get<EventsService>(EventsService);
     getServer = () => {
       return request(app.getHttpServer());
     };

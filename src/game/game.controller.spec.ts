@@ -3,7 +3,12 @@ import { GameController } from './game.controller';
 import { GameService } from './game.service';
 import { GameTurn } from './models/turn.models';
 import { CreateGameDto } from './dto/create-game.dto';
-import { EventStatus, EventType } from 'src/events/models/events.model';
+import {
+  BaseGameEvent,
+  CharacterEvent,
+  EventStatus,
+  EventType,
+} from 'src/events/models/events.model';
 import { EndTurnResponseDto } from './dto/end-turn-response.dto';
 import { GameTurnService } from './game-turn.service';
 
@@ -12,23 +17,19 @@ describe('GameController', () => {
   let mockGameService: any;
   let mockGameTurnService: any;
 
-  const mockGameTurn: GameTurn = {
-    step: 1,
-    day: 'Monday',
-    sectionOfDay: 'Morning',
-  } as any;
+  const mockGameTurn: GameTurn = new GameTurn(1);
 
-  const mockGameEvent: GameEvent = {
+  const mockGameEvent: CharacterEvent = {
     id: '123',
-    type: EventType.WORLD,
+    type: EventType.CHARACTER,
     status: EventStatus.PENDING,
     title: 'Test Event',
     description: 'A test event',
     predefinedOptions: ['Option 1', 'Option 2'],
     createdAt: mockGameTurn,
-  } as GameEvent;
+  };
 
-  const mockGameEvents: GameEvent[] = [mockGameEvent];
+  const mockGameEvents: BaseGameEvent[] = [mockGameEvent];
 
   beforeEach(async () => {
     mockGameTurnService = {
@@ -84,7 +85,7 @@ describe('GameController', () => {
         day: 'Monday',
         sectionOfDay: 'Afternoon',
       } as any;
-      const expectedMockEvents: GameEvent[] = [];
+      const expectedMockEvents: BaseGameEvent[] = [];
       const expected: EndTurnResponseDto = {
         turn: updatedTurn,
         events: expectedMockEvents,
@@ -118,17 +119,17 @@ describe('GameController', () => {
     });
 
     it('returns a reset game turn', () => {
-      expect(response.step).toBe(1);
+      expect(response.getStep()).toBe(1);
     });
   });
 
   describe('PUT /events/:id/submit-choice', () => {
-    it('should submit a choice for an event', async () => {
+    it('should submit a choice for an event', () => {
       const eventId = '123';
       const choice = 'Option 1';
       const intent = 'Talk';
 
-      const result = await controller.submitChoice(eventId, { choice, intent });
+      const result = controller.submitChoice(eventId, { choice, intent });
 
       expect(result).toStrictEqual(mockGameEvents);
       expect(mockGameService.submitChoice).toHaveBeenCalledWith(
@@ -138,8 +139,8 @@ describe('GameController', () => {
       );
     });
 
-    it('should return updated event log', async () => {
-      const result = await controller.submitChoice('123', {
+    it('should return updated event log', () => {
+      const result = controller.submitChoice('123', {
         choice: 'Option 1',
         intent: 'Talk',
       });

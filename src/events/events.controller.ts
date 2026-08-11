@@ -1,5 +1,5 @@
-import { Controller, Get, Delete, Body, Put, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Get, Delete } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { BaseGameEvent } from './models/events.model';
 

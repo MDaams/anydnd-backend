@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Delete } from '@nestjs/common';
+import { Controller, Get, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CharactersService } from './characters.service';
 import { CharacterDto } from './dto/characters.dto';
+import { GameCharacter } from './models/gameCharacter.model';
 
 @ApiTags('characters')
 @Controller()
@@ -16,7 +17,7 @@ export class CharactersController {
     type: [CharacterDto],
   })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  getCharacters(): any {
+  getCharacters(): GameCharacter[] {
     return this.service.getCharacters();
   }
 

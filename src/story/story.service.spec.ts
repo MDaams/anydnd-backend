@@ -1,4 +1,3 @@
-import { StoryContextDto } from './dto/storyContext.dto';
 import { Story } from './models/story.model';
 import { StoryService } from './story.service';
 
