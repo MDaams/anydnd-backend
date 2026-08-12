@@ -4,7 +4,6 @@ import {
   CharacterEvent,
   EventStatus,
   EventType,
-  GameEventFactory,
   SceneEvent,
   WorldEvent,
 } from 'src/events/models/events.model';
@@ -58,12 +57,15 @@ describe('EventsService', () => {
     });
 
     it('should submit a valid choice for an event', () => {
-      const result: SceneEvent = GameEventFactory.fromPlain(
-        service.submitChoice(eventId, 'Talk', 'Yes', mockGameTurn),
+      const result: SceneEvent = service.submitChoice(
+        eventId,
+        'Talk',
+        'Yes',
+        mockGameTurn,
       );
 
       expect(result).toBeDefined();
-      expect(result?.action?.getAction()).toBe('Yes');
+      expect(result?.action?.getInput()).toBe('Yes');
       expect(result?.status).toBe(EventStatus.RESOLVED);
       expect(result?.action?.getCreatedAtStep()).toBe(2);
       expect(result?.action?.getIntent()).toBe(ActionIntent.TALK);
@@ -74,8 +76,11 @@ describe('EventsService', () => {
         return 0; // Return min to guarantee chance conditions pass
       });
 
-      const result: CharacterEvent = GameEventFactory.fromPlain(
-        service.submitChoice(eventId, 'Talk', 'Yes', mockGameTurn),
+      const result: CharacterEvent = service.submitChoice(
+        eventId,
+        'Talk',
+        'Yes',
+        mockGameTurn,
       );
 
       expect(result).toBeDefined();
@@ -111,13 +116,16 @@ describe('EventsService', () => {
       const action: string = 'Yes';
       const gameTurn: GameTurn = new GameTurn(1);
 
-      const result: SceneEvent = GameEventFactory.fromPlain(
-        service.submitChoice(eventId, actionIntent, action, gameTurn),
+      const result: SceneEvent = service.submitChoice(
+        eventId,
+        actionIntent,
+        action,
+        gameTurn,
       );
 
       expect(result.action?.getIntent()).toBe(actionIntent);
       expect(result.action?.getCreatedAtStep()).toBe(gameTurn.getStep());
-      expect(result.action?.getAction()).toBe(action);
+      expect(result.action?.getInput()).toBe(action);
     });
 
     it('should throw unprocessable entity for WorldEvent', () => {

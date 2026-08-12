@@ -112,19 +112,18 @@ export const EventUtils = {
 };
 
 export class GameEventFactory {
-  static fromPlain(data: {
-    type: EventType;
-    [key: string]: unknown;
-  }): BaseGameEvent {
-    switch (data.type) {
+  static fromPlain(data: BaseGameEvent): BaseGameEvent {
+    const rawData = data as unknown as { type: EventType; [key: string]: unknown };
+
+    switch (rawData.type) {
       case EventType.WORLD:
-        return Object.assign(new WorldEvent(), data);
+        return Object.assign(new WorldEvent(), rawData);
       case EventType.CHARACTER:
-        return Object.assign(new CharacterEvent(), data);
+        return Object.assign(new CharacterEvent(), rawData);
       case EventType.SCENE:
-        return Object.assign(new SceneEvent(), data);
+        return Object.assign(new SceneEvent(), rawData);
       default:
-        return Object.assign(new BaseGameEvent(), data);
+        return data;
     }
   }
 }

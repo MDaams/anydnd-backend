@@ -240,11 +240,7 @@ export class GameService {
           type: EventType.CHARACTER,
           status: EventStatus.PENDING,
           createdAt: currentTurn.clone(),
-          title: e.title,
-          description: e.description,
-          asciiArt: e.asciiArt,
-          predefinedOptions: e.predefinedOptions,
-          characterId: e.characterId,
+          ...e,
         }),
       );
     });
