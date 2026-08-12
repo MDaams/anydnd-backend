@@ -1,7 +1,6 @@
 # AI-Powered Turn-Based Game Backend
 
-A nestJS backend designed to orchestrate turn-based gameplay loops driven by external AI service integrations. This project implements clean domain separation, a centralized orchestrator pattern, and defensive error-handling with automatic state rollbacks. Combine with the [Frontend]() for a narrative driven experience.
-
+A nestJS backend designed to orchestrate turn-based gameplay loops driven by external AI service integrations. This project implements clean domain separation, a centralized orchestrator pattern, and defensive error-handling with automatic state rollbacks.
 ```mermaid
 graph TD
     CharactersController --> CharactersService
