@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AIService } from './ai.service';
 import { EndTurnConfig } from 'src/game/models/chanceConfig.models';
 import { GameTurn } from 'src/game/models/turn.models';
+import { GameCharacter } from 'src/characters/models/gameCharacter.model';
+import { InternalServerErrorException } from '@nestjs/common';
 
 describe('AIService', () => {
   let service: AIService;
+  let defaultEndTurnConfig: EndTurnConfig;
 
   beforeEach(async () => {
-    // Mock the environment variable
     process.env.GEMINI_API_KEY = 'test-api-key';
 
     const module: TestingModule = await Test.createTestingModule({
@@ -16,7 +18,6 @@ describe('AIService', () => {
 
     service = module.get<AIService>(AIService);
 
-    // Mock the executeJsonPrompt private method to avoid actual API calls
     jest.spyOn(service as any, 'executeJsonPrompt').mockResolvedValue({
       worldEvent: {
         title: 'Test World Event',
@@ -41,6 +42,24 @@ describe('AIService', () => {
         },
       ],
     });
+
+    const mainCharacter = new GameCharacter();
+    mainCharacter.isMainCharacter = true;
+    defaultEndTurnConfig = new EndTurnConfig();
+    defaultEndTurnConfig.gameTurn = new GameTurn(1);
+    defaultEndTurnConfig.storySettings = {
+      genre: 'Crime Drama',
+      tone: 'Gritty',
+      year: '2024',
+      setting: 'Modern Prison',
+      language: 'Dutch',
+    };
+    defaultEndTurnConfig.characters = [mainCharacter];
+    defaultEndTurnConfig.pastCharacterEvents = [];
+    defaultEndTurnConfig.pastWorldEvents = [];
+    defaultEndTurnConfig.numberOfCharactersToCreate = 1;
+    defaultEndTurnConfig.numberOfCharacterEventToCreate = 1;
+    defaultEndTurnConfig.charactersToCreateEventsFor = [];
   });
 
   it('should be defined', () => {
@@ -49,24 +68,9 @@ describe('AIService', () => {
 
   describe('prepareTurnData', () => {
     it('should prepare turn data with all required fields', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-        language: 'Dutch',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 1;
-      endTurnConfig.numberOfCharacterEventToCreate = 1;
-      endTurnConfig.charactersToCreateEventsFor = [];
-
-      // Call private method through any type casting
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
 
       expect(preparedData).toBeDefined();
       expect(preparedData).toHaveProperty('recentCharacterEvents');
@@ -77,22 +81,12 @@ describe('AIService', () => {
     });
 
     it('should handle empty events arrays', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 0;
-      endTurnConfig.numberOfCharacterEventToCreate = 0;
-      endTurnConfig.charactersToCreateEventsFor = [];
+      defaultEndTurnConfig.numberOfCharactersToCreate = 0;
+      defaultEndTurnConfig.numberOfCharacterEventToCreate = 0;
 
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
 
       expect(preparedData.recentCharacterEvents).toBe(
         'No recent character events',
@@ -102,28 +96,22 @@ describe('AIService', () => {
         'No active characters in scene',
       );
     });
+
+    it('throws internalservererror if no maincharacter exists', () => {
+      defaultEndTurnConfig.characters = [];
+      expect(() =>
+        (service as any).prepareTurnData(defaultEndTurnConfig),
+      ).toThrow(InternalServerErrorException);
+    });
   });
 
   describe('buildTurnPrompt', () => {
     it('should build a prompt with ASCII art requirements', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 1;
-      endTurnConfig.numberOfCharacterEventToCreate = 1;
-      endTurnConfig.charactersToCreateEventsFor = [];
-
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
       const prompt = (service as any).buildTurnPrompt(
-        endTurnConfig,
+        defaultEndTurnConfig,
         preparedData,
       );
 
@@ -134,24 +122,14 @@ describe('AIService', () => {
     });
 
     it('should include JSON schema for asciiArt in world events', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 0;
-      endTurnConfig.numberOfCharacterEventToCreate = 0;
-      endTurnConfig.charactersToCreateEventsFor = [];
+      defaultEndTurnConfig.numberOfCharactersToCreate = 0;
+      defaultEndTurnConfig.numberOfCharacterEventToCreate = 0;
 
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
       const prompt = (service as any).buildTurnPrompt(
-        endTurnConfig,
+        defaultEndTurnConfig,
         preparedData,
       );
 
@@ -160,24 +138,14 @@ describe('AIService', () => {
     });
 
     it('should include JSON schema for asciiArt in character events', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 0;
-      endTurnConfig.numberOfCharacterEventToCreate = 1;
-      endTurnConfig.charactersToCreateEventsFor = [];
+      defaultEndTurnConfig.numberOfCharactersToCreate = 0;
+      defaultEndTurnConfig.numberOfCharacterEventToCreate = 1;
 
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
       const prompt = (service as any).buildTurnPrompt(
-        endTurnConfig,
+        defaultEndTurnConfig,
         preparedData,
       );
 
@@ -186,24 +154,14 @@ describe('AIService', () => {
     });
 
     it('should specify ASCII art dimensions', () => {
-      const endTurnConfig = new EndTurnConfig();
-      endTurnConfig.gameTurn = new GameTurn(1);
-      endTurnConfig.storySettings = {
-        genre: 'Crime Drama',
-        tone: 'Gritty',
-        year: '2024',
-        setting: 'Modern Prison',
-      };
-      endTurnConfig.characters = [];
-      endTurnConfig.pastCharacterEvents = [];
-      endTurnConfig.pastWorldEvents = [];
-      endTurnConfig.numberOfCharactersToCreate = 0;
-      endTurnConfig.numberOfCharacterEventToCreate = 0;
-      endTurnConfig.charactersToCreateEventsFor = [];
+      defaultEndTurnConfig.numberOfCharactersToCreate = 0;
+      defaultEndTurnConfig.numberOfCharacterEventToCreate = 0;
 
-      const preparedData = (service as any).prepareTurnData(endTurnConfig);
+      const preparedData = (service as any).prepareTurnData(
+        defaultEndTurnConfig,
+      );
       const prompt = (service as any).buildTurnPrompt(
-        endTurnConfig,
+        defaultEndTurnConfig,
         preparedData,
       );
 
