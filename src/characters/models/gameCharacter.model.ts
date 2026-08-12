@@ -21,5 +21,5 @@ export class GameCharacter {
     type: Boolean,
     description: 'Signals if character is main character',
   })
-  isMainCharacter!: boolean;
+  isMainCharacter: boolean = false;
 }

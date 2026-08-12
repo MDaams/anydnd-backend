@@ -6,6 +6,7 @@ import { AIService } from 'src/ai/ai.service';
 import { StoryService } from 'src/story/story.service';
 import * as helpersUtils from 'src/common/helpers.utils';
 import { Story } from 'src/story/models/story.model';
+import { GameCharacter } from 'src/characters/models/gameCharacter.model';
 
 jest.mock('src/common/helpers.utils');
 
@@ -45,6 +46,7 @@ describe('GameService', () => {
       clearCharacters: jest.fn(),
       createCharacter: jest.fn(),
       addCharacter: jest.fn(),
+      generateMainCharacter: jest.fn(),
       getCharacters: jest.fn().mockReturnValue([
         {
           id: 'char-1',
@@ -143,8 +145,7 @@ describe('GameService', () => {
 
   describe('new game', () => {
     beforeEach(async () => {
-      const story: Story = new Story();
-      await service.createNewGame(story);
+      await service.createNewGame(new Story());
     });
 
     it('clears characters', () => {
@@ -162,6 +163,23 @@ describe('GameService', () => {
 
     it('calls aiservice to generate a turn', () => {
       expect(aiService.generateTurnContent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('New game - main character', () => {
+    it('is created', async () => {
+      const expected: GameCharacter = new GameCharacter();
+      expected.id = '1';
+      expected.eventLog = [];
+      expected.isMainCharacter = true;
+      expected.name = 'The player';
+      expected.isMainCharacter = true;
+
+      jest.spyOn(service, 'endTurn').mockResolvedValueOnce({} as any);
+
+      await service.createNewGame(new Story());
+
+      expect(charactersService.generateMainCharacter).toHaveBeenCalledTimes(1);
     });
   });
 
