@@ -1,16 +1,13 @@
 name: Testing
 
 on:
-  workflow_run:
-    workflows: ['Build']
-    types:
-      - completed
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Ensure it only runs if the build workflow actually succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
         with:
