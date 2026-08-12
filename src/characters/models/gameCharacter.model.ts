@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CharacterEvent } from 'src/events/models/events.model';
+import { Item } from './item.models';
 
 export class GameCharacter {
   @ApiProperty({ example: 'char-123' })
@@ -10,6 +11,12 @@ export class GameCharacter {
 
   @ApiProperty({ example: 'A brief summary of the character' })
   summary!: string;
+
+  @ApiProperty({
+    description: 'A list of items in the inventory of the character',
+    example: '["knife", "key", "A purse of gold"]',
+  })
+  inventory!: Item[];
 
   @ApiProperty({
     type: [Object],
