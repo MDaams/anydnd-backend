@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { GameTurn } from 'src/game/models/turn.models';
 import { EventAction } from './action.model';
+import { chanceRollToHundred } from '@src/common/chance.utils';
 
 export enum EventType {
   WORLD = 'WORLD',
@@ -112,8 +113,22 @@ export const EventUtils = {
 };
 
 export class GameEventFactory {
+  static submitChoice(
+    event: CharacterEvent | SceneEvent,
+    input: string,
+    intent: string,
+    currentTurn: GameTurn,
+  ) {
+    event.action = new EventAction(input, intent, currentTurn.getStep());
+    event.status = EventStatus.RESOLVED;
+    event.chosenOptionSucces = chanceRollToHundred() <= 75;
+    event.createdAt = currentTurn.clone();
+  }
   static fromPlain(data: BaseGameEvent): BaseGameEvent {
-    const rawData = data as unknown as { type: EventType; [key: string]: unknown };
+    const rawData = data as unknown as {
+      type: EventType;
+      [key: string]: unknown;
+    };
 
     switch (rawData.type) {
       case EventType.WORLD:

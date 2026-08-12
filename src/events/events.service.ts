@@ -9,18 +9,52 @@ import {
   EventStatus,
   EventUtils,
   GameEventFactory,
+  SceneEvent,
 } from './models/events.model';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
-import { randomNumber } from 'src/common/helpers.utils';
 import { GameTurn } from 'src/game/models/turn.models';
-import { EventAction } from './models/action.model';
-import { AppLogger } from 'src/common/logger.util';
+import { isEmpty } from 'class-validator';
 
 @Injectable()
 export class EventsService {
   private eventLog: Array<BaseGameEvent> = [];
 
   constructor() {}
+
+  private handleEmptyChoice(): never {
+    throw new UnprocessableEntityException('Choice is an empty string.');
+  }
+
+  private handleEventNotFound(eventId: string): never {
+    throw new InternalServerErrorException(
+      `Event with id ${eventId} not found`,
+    );
+  }
+
+  private handleCannotSubmitOnWorldEvent() {
+    throw new UnprocessableEntityException(
+      'Tried to submit a choice on an event with type World.',
+    );
+  }
+
+  private findById(eventId: string): BaseGameEvent | undefined {
+    return this.eventLog.find((event) => event.id === eventId);
+  }
+
+  private updateEvent(
+    eventToUpdate: BaseGameEvent,
+    eventToUpdateWith: BaseGameEvent,
+  ): BaseGameEvent {
+    const updateIndex: number = this.eventLog.indexOf(eventToUpdate);
+
+    this.eventLog[updateIndex] = eventToUpdateWith;
+
+    return this.eventLog[updateIndex];
+  }
+
+  private isAWorldEvent(event: BaseGameEvent) {
+    return EventUtils.isWorldEvent(event);
+  }
 
   hasPendingEvent(character: GameCharacter) {
     return (
@@ -42,39 +76,24 @@ export class EventsService {
   getEventLog(): Array<BaseGameEvent> {
     return this.eventLog;
   }
-
   submitChoice(
     eventId: string,
     intent: string,
     choice: string,
     currentTurn: GameTurn,
   ): BaseGameEvent {
-    const eventIndex = this.eventLog.findIndex((event) => event.id === eventId);
+    if (isEmpty(choice)) this.handleEmptyChoice();
+    const event: BaseGameEvent | undefined = this.findById(eventId);
 
-    if (choice === '')
-      throw new UnprocessableEntityException('Choice is an empty string.');
-    if (eventIndex === -1) {
-      throw new InternalServerErrorException(
-        `Event with id ${eventId} not found`,
-      );
-    }
+    if (!event) this.handleEventNotFound(eventId);
+    if (this.isAWorldEvent(event)) this.handleCannotSubmitOnWorldEvent();
 
-    const event = GameEventFactory.fromPlain(this.eventLog[eventIndex]);
+    const updatedEvent: SceneEvent | CharacterEvent =
+      GameEventFactory.fromPlain(event);
 
-    if (EventUtils.isCharacterEvent(event) || EventUtils.isSceneEvent(event)) {
-      event.action = new EventAction(choice, intent, currentTurn.getStep());
-      event.status = EventStatus.RESOLVED;
-      const succesRoll = randomNumber(100);
-      AppLogger.log(`🎲 Chosen option succes roll: ${succesRoll}`);
-      event.chosenOptionSucces = succesRoll <= 75;
-      event.createdAt = currentTurn.clone();
-      this.eventLog[eventIndex] = event;
-      return event;
-    }
+    GameEventFactory.submitChoice(event, choice, intent, currentTurn);
 
-    throw new UnprocessableEntityException(
-      'Cannot submit a choice for a Worldevent',
-    );
+    return this.updateEvent(event, updatedEvent);
   }
 
   addEvent(event: BaseGameEvent): void {
