@@ -17,4 +17,7 @@ export class CharacterDto {
 
   @ApiProperty({ type: [Object], description: 'Collection of items' })
   inventory!: Item[];
+
+  @ApiProperty({ type: Boolean, description: 'true' })
+  isMainCharacter!: boolean;
 }

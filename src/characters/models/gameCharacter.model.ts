@@ -23,4 +23,10 @@ export class GameCharacter {
     description: 'Log of events relevant for this character',
   })
   eventLog!: CharacterEvent[];
+
+  @ApiProperty({
+    type: Boolean,
+    description: 'Signals if character is main character',
+  })
+  isMainCharacter: boolean = false;
 }

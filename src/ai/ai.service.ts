@@ -8,6 +8,7 @@ import {
   EventUtils,
 } from 'src/events/models/events.model';
 import { TurnContentDto } from './dto/turnContent.dto';
+import { GameCharacter } from '@src/characters/models/gameCharacter.model';
 
 @Injectable()
 export class AIService {
@@ -107,6 +108,17 @@ export class AIService {
    * 2. DATA PREPARATIE
    */
   private prepareTurnData(endTurnConfig: EndTurnConfig) {
+    const mainCharacter: GameCharacter | undefined =
+      endTurnConfig.characters.find((c) => {
+        return c.isMainCharacter;
+      });
+
+    if (!mainCharacter)
+      throw new InternalServerErrorException('No main character exists');
+
+    const otherCharacters: GameCharacter[] = endTurnConfig.characters.filter(
+      (c) => c.id != mainCharacter.id,
+    );
     const recentCharacterEvents =
       endTurnConfig.pastCharacterEvents &&
       endTurnConfig.pastCharacterEvents.length > 0
@@ -123,8 +135,8 @@ export class AIService {
         : 'No recent events';
 
     const characterContext =
-      endTurnConfig.characters && endTurnConfig.characters.length > 0
-        ? endTurnConfig.characters
+      otherCharacters && otherCharacters.length > 0
+        ? otherCharacters
             .map((c) => {
               const inventoryList =
                 c.inventory && c.inventory.length > 0
@@ -197,7 +209,6 @@ export class AIService {
 
     const outputLanguage: string =
       endTurnConfig.storySettings.language || 'English';
-    const playerRole = "I am neo from 'the matrix'.";
 
     return {
       recentCharacterEvents,
@@ -206,9 +217,9 @@ export class AIService {
       playerChoicesContext,
       outputLanguage,
       lastTurnChoicesText,
-      playerRole,
       languageDifficulty: this.languageDifficulty,
       currentWorldSummary: endTurnConfig.worldSummary,
+      mainCharacter,
     };
   }
 
@@ -230,7 +241,7 @@ CRITICAL LANGUAGE & READABILITY REQUIREMENTS:
 
 PLAYER PERSPECTIVE (STRICT 2ND PERSON):
 - Address the player as "You" (e.g., "You enter...", "You see...").
-- Options MUST always represent actions that YOU (${data.playerRole}) can take. Never let an NPC decide or act as the player.
+- Options MUST always represent actions that YOU (${data.mainCharacter.name}, the ${data.mainCharacter.summary}) can take. Never let an NPC decide or act as the player.
 
 WORLD SETTING:
 - Genre: ${genre} | Tone: ${tone} | Setting: ${setting}
