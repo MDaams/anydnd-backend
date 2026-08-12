@@ -76,8 +76,11 @@ describe('AIService', () => {
       expect(preparedData).toHaveProperty('recentCharacterEvents');
       expect(preparedData).toHaveProperty('recentWorldEventsContext');
       expect(preparedData).toHaveProperty('characterContext');
-      expect(preparedData).toHaveProperty('playerChoicesContext');
       expect(preparedData).toHaveProperty('outputLanguage');
+      expect(preparedData).toHaveProperty('lastTurnChoicesText');
+      expect(preparedData).toHaveProperty('languageDifficulty');
+      expect(preparedData).toHaveProperty('currentWorldSummary');
+      expect(preparedData).toHaveProperty('mainCharacter');
     });
 
     it('should handle empty events arrays', () => {

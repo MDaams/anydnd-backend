@@ -7,7 +7,7 @@ import { AIService } from 'src/ai/ai.service';
 import { CreateGameDto } from 'src/game/dto/create-game.dto';
 import { randomUUID } from 'crypto';
 import { EventAction } from 'src/events/models/action.model';
-import { EventStatus } from 'src/events/models/events.model';
+import { EventStatus, EventType } from 'src/events/models/events.model';
 import { GameTurn } from 'src/game/models/turn.models';
 import { EventsService } from 'src/events/events.service';
 
@@ -241,7 +241,7 @@ describe('GameController (e2e)', () => {
 
       const testEvent = {
         id: randomUUID(),
-        type: 'SCENE' as any,
+        type: EventType.SCENE,
         title: 'Test Event',
         description: 'A test event',
         status: EventStatus.PENDING,
@@ -259,7 +259,7 @@ describe('GameController (e2e)', () => {
         .expect(200)
         .expect((response) => {
           const updatedEvent = response.body;
-          expect(updatedEvent.action.action).toBe(choice);
+          expect(updatedEvent.action.input).toBe(choice);
           expect(updatedEvent.status).toBe(EventStatus.RESOLVED);
         });
     });
