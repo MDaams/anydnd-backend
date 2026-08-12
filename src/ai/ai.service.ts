@@ -2,11 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { AppLogger } from 'src/common/logger.util';
 import { EndTurnConfig } from 'src/game/models/chanceConfig.models';
-import {
-  EventStatus,
-  EventType,
-  EventUtils,
-} from 'src/events/models/events.model';
+import { EventUtils } from 'src/events/models/events.model';
 import { TurnContentDto } from './dto/turnContent.dto';
 import { GameCharacter } from '@src/characters/models/gameCharacter.model';
 
@@ -148,44 +144,6 @@ export class AIService {
             .join('\n')
         : 'No active characters in scene';
 
-    const lastTurnResolvedCharacterAndSceneEvents = [
-      ...(endTurnConfig.pastCharacterEvents || []),
-      ...(endTurnConfig.pastSceneEvents || []),
-    ].filter(
-      (e) =>
-        e.status === EventStatus.RESOLVED &&
-        e.action &&
-        EventUtils.wasResolvedLastTurn(e, endTurnConfig.gameTurn),
-    );
-
-    const lastTurnCreatedWorldEvents = (
-      endTurnConfig.pastWorldEvents || []
-    ).filter(
-      (e) =>
-        EventType.WORLD == e.type &&
-        EventUtils.wasCreatedLastTurn(e, endTurnConfig.gameTurn),
-    );
-
-    const lastTurnResolvedEvents = [
-      ...lastTurnCreatedWorldEvents,
-      ...lastTurnResolvedCharacterAndSceneEvents,
-    ];
-
-    const noChoiceText: string = 'No choices were made last turn';
-    const playerChoicesContext =
-      lastTurnResolvedEvents.length > 0
-        ? lastTurnResolvedEvents
-            .filter((e) => !EventUtils.isWorldEvent(e))
-            .map((e) => {
-              const target = EventUtils.isCharacterEvent(e)
-                ? `Character (${e.characterId})`
-                : 'Scene / Environment';
-
-              return `- [${target}] ${e.toString()}`;
-            })
-            .join('\n')
-        : noChoiceText;
-
     const lastTurnChoices = endTurnConfig.pastCharacterEvents.filter((e) =>
       EventUtils.wasResolvedLastTurn(e, endTurnConfig.gameTurn),
     );
@@ -202,10 +160,12 @@ export class AIService {
                     ? 'SUCCESS'
                     : 'FAILURE';
               const intent = e.action?.getIntent() ?? 'Unknown';
-              return `- Character (ID: "${e.characterId}") | Intent: [${intent}] | Action: "${e.action?.getAction()}" | Roll Outcome: [${outcome}]`;
+              return `- Character (ID: "${e.characterId}") | Intent: [${intent}] | Happening: "${e.action?.toString()}" | Roll Outcome: [${outcome}]`;
             })
             .join('\n')
         : 'No character decisions made last turn.';
+
+    AppLogger.log(lastTurnChoicesText);
 
     const outputLanguage: string =
       endTurnConfig.storySettings.language || 'English';
@@ -214,7 +174,6 @@ export class AIService {
       recentCharacterEvents,
       recentWorldEventsContext,
       characterContext,
-      playerChoicesContext,
       outputLanguage,
       lastTurnChoicesText,
       languageDifficulty: this.languageDifficulty,
@@ -241,24 +200,24 @@ CRITICAL LANGUAGE & READABILITY REQUIREMENTS:
 
 PLAYER PERSPECTIVE (STRICT 2ND PERSON):
 - Address the player as "You" (e.g., "You enter...", "You see...").
-- Options MUST always represent actions that YOU (${data.mainCharacter.name}, the ${data.mainCharacter.summary}) can take. Never let an NPC decide or act as the player.
+- Options MUST always represent actions that YOU (${data.mainCharacter.name}, the${data.mainCharacter.summary}) can take. Never let an NPC decide or act as the player.
 
 WORLD SETTING:
-- Genre: ${genre} | Tone: ${tone} | Setting: ${setting}
-- Time: Day ${endTurnConfig.gameTurn.day}, ${endTurnConfig.gameTurn.sectionOfDay} (Year ${year})
+- Genre: ${genre} | Tone: ${tone} \vert{} Setting:${setting}
+- Time: Day ${endTurnConfig.gameTurn.day}, ${endTurnConfig.gameTurn.sectionOfDay} (Year${year})
 
 CURRENT WORLD SUMMARY (CONTINUITY STATE):
 ${data.currentWorldSummary}
 *Instructions on Summary:* Update this summary based on what happened this turn. Explicitly track who is dead, major environmental changes (like bombed locations), and the current narrative status.
 
-PREVIOUS TURN CONTEXT (PLAYER INTENTS & ACTIONS):
-${data.playerChoicesContext}
 
-ROLL OUTCOMES & HARD OVERWRITE RULES (CRITICAL):
+ROLL OUTCOMES:
 ${data.lastTurnChoicesText}
-*NOTE ON ROLL OUTCOMES:* 
-- If a roll outcome is [SUCCESS], the player's action MUST unconditionally succeed. The world and characters must react with a successful outcome, even if it involves absurd actions (like miniguns, nukes, or hitting targets). Do not block or jam it unless a FAILURE roll dictates otherwise.
-- If a roll outcome is [FAILURE], the player's action MUST fail, jam, miss, or backfire, regardless of what they tried to do.
+
+ROLL OUTCOMES & INVENTORY RULES (CRITICAL):
+1. ROLL EFFECT: If a roll outcome is [SUCCESS], the player's written action succeeds in its physical or verbal execution. If a roll outcome is [FAILURE], the action fails, jams, misses, or backfires.
+2. NO ITEM GENERATION (SPAWN PREVENTION): Characters and the player cannot magically pull items, weapons, or tools out of thin air. If an item is not explicitly listed in their current inventory array, they do not possess it.
+3. ABSENCE CONSEQUENCE: If an action relies on using an item that does not exist in the player's inventory, the action cannot conjure it. It must result in an empty hand, a failed attempt, or an improvised alternative, regardless of a [SUCCESS] roll.
 
 CURRENT KNOWN CHARACTERS:
 ${data.characterContext}
@@ -269,7 +228,7 @@ GENERATION REQUIREMENTS:
 - Provide an updated, concise summary of the overall story state (3-5 sentences) in the "worldSummary" field, strictly maintaining who is dead and what destruction has occurred.
 
 2. WORLD EVENT (type: WORLD):
-- Describe the immediate physical aftermath and consequences of the player's specific intent and action from the perspective of "You", strictly respecting the SUCCESS or FAILURE roll outcome provided above.
+- Describe the immediate physical aftermath and consequences of the player's action from the perspective of "You", strictly respecting the SUCCESS or FAILURE roll outcome and inventory realities.
 - IMPORTANT: Check the history and summary. If the player killed or stabbed someone previously, they are DEAD and must stay dead. Do not magically revive dead characters.
 - No options allowed for this event.
 
@@ -278,7 +237,7 @@ GENERATION REQUIREMENTS:
 - If the action calls for new faces (e.g. vengeful relatives, new guards), invent them dynamically and include them in the "characters" array with a unique string ID.
 
 4. AUTONOMOUS CHARACTER INTERACTIONS:
-- LOOK AT THE LIVING CHARACTERS AND THE PLAYER'S PREVIOUS INTENT/ACTION.
+- LOOK AT THE LIVING CHARACTERS AND THE PLAYER'S PREVIOUS ACTION.
 - Fill "characterEvents" with meaningful interactions or reactions based on what the player just did and whether they succeeded or failed.
 - Leave "characterEvents" as [] if no characters are around, and use "sceneEvent" instead if needed.
 
@@ -286,21 +245,17 @@ RULES:
 - Keep the tone strictly like '${tone}'.
 - ASCII art: Evocative scenery, 8-12 lines high, max 45 chars wide.
 
-ITEM MANAGEMENT RULES:
-1. INVENTORY AWARENESS: Look at the items listed in the character context. Characters can only use, trade, or give away items they actually possess in their inventory.
-2. PERSISTENCE & CHANGES: If an item is given, consumed, dropped, or stolen, explicitly declare it in the "inventoryChanges" array. Do not let items disappear or duplicate without a narrative cause.
-3. LOGICAL CONSEQUENCES: If the player attempts to use an item they do not possess, the action must fail or trigger a narrative consequence reflecting that missing tool.
+PLAYER ACTION ATTRIBUTION (CRITICAL):
+1. THE PLAYER IS THE SOLE ACTOR: In the history log, entries showing a character ID (e.g., linked to a characterEvent) indicate *who* the player was interacting with or speaking to. That character ID does NOT mean the NPC performed the action. 
+2. ALWAYS ATTRIBUTED TO YOU: The player ("You") is the only one who initiated the text input, spoke the words, or tried the action. The character merely reacts to it.
 
+ITEM MANAGEMENT & LOOTING RULES:
+1. STRICT POSSESSION: Characters (including the player) can only use, consume, drop, or trade items that physically exist within their current "inventory" array. 
+2. LOOTING & TRANSFERS: When a character is searched, robbed, or killed, any items they possess (such as weapons, badges, or gold) must be explicitly transferred to the looter's inventory and removed from the original owner's inventory.
+3. EXPLICIT JSON OUTPUT: Any change in ownership or inventory state must be fully reflected in the updated inventory arrays for both the player and the affected characters in the response.
 
 JSON RESPONSE SCHEMA:
 {
-  "worldSummary": "Updated 3-5 sentence summary of the ongoing story state, dead characters, and world changes.",
-  "worldEvent": {
-    "title": "Short title (3-6 words)",
-    "description": "2-3 clear sentences. Cause-and-effect of the player's action, strictly adhering to the SUCCESS/FAILURE roll outcome and respecting who is alive or dead.",
-    "asciiArt": "ASCII art (5-8 lines)"
-  },
-  {
   "worldSummary": "Updated 3-5 sentence summary of the ongoing story state, dead characters, and world changes.",
   "worldEvent": {
     "title": "Short title (3-6 words)",

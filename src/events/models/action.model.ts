@@ -10,10 +10,10 @@ export enum ActionIntent {
 export class EventAction {
   private intent: ActionIntent;
   private createdAt: GameTurn;
-  private action: string;
+  private input: string;
 
-  constructor(action: string, intent: string, createdAtStep: number) {
-    this.action = action;
+  constructor(input: string, intent: string, createdAtStep: number) {
+    this.input = input;
     this.intent = this.getIntentType(intent);
     this.createdAt = new GameTurn(createdAtStep);
   }
@@ -37,11 +37,26 @@ export class EventAction {
     return this.intent;
   }
 
-  getAction(): string {
-    return this.action;
+  getInput(): string {
+    return this.input;
   }
 
   getCreatedAtStep(): number {
     return this.createdAt.getStep();
+  }
+
+  toString(): string {
+    switch (this.intent) {
+      case ActionIntent.TALK:
+        return `Said out loud: "${this.input}"`;
+      case ActionIntent.ESCAPE:
+        return `Attempted to escape by: "${this.input}"`;
+      case ActionIntent.ATTACK:
+        return `Attempted a physical attack: "${this.input}"`;
+      case ActionIntent.DO:
+        return `Attempted the following action: "${this.input}"`;
+      default:
+        return `Attempted: "${this.input}"`;
+    }
   }
 }

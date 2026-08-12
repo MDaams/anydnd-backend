@@ -53,8 +53,9 @@ export class CharactersService {
     mainCharacter.id = randomUUID();
     mainCharacter.eventLog = [];
     mainCharacter.name = 'The player';
-    mainCharacter.summary = 'Is Neo in the matrix.'
+    mainCharacter.summary = 'Is Neo in the matrix.';
     mainCharacter.isMainCharacter = true;
+    mainCharacter.inventory = [];
 
     this.characters = [...this.getCharacters(), mainCharacter];
   }

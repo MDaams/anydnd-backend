@@ -65,7 +65,7 @@ export class CharacterEvent extends BaseGameEvent {
   action?: EventAction;
 
   override toString(): string {
-    return `Event: "${this.title}" | Player Intent: [${this.action?.getIntent() || 'Unknown'}] -> Action Taken: "${this.action?.getAction() || 'Unknown'}"`;
+    return `Event: "${this.title}" | ${this.action?.toString()}`;
   }
 }
 
@@ -80,7 +80,7 @@ export class SceneEvent extends BaseGameEvent {
   action?: EventAction;
 
   override toString(): string {
-    return `Event: "${this.title}" | Player Intent: [${this.action?.getIntent() || 'Unknown'}] -> Action Taken: "${this.action?.getAction() || 'Unknown'}"`;
+    return `Event: "${this.title}" | ${this.action?.toString()}`;
   }
 }
 
