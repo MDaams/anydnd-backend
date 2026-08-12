@@ -33,7 +33,7 @@ GameController
 * Deterministic/generated: Keep things that should happen at intervals, eventrolls, charactercreation rolls in the backend. Let AI fill out the content when an event is created or a character needs to be created. GenAI is not good at doing deterministic rolls since it seems to always have either a high (80%) or low (20%) chance. AI does not do hard math, it seems to stick to extreme values in a spectrum. Rule of thumb: Logic belongs in the backend, content belongs in the GenAI (it is a good replacement for hardcoded events/characters or information that should normally come from the user, if that information is purely content).
 * Cohesive prompt sequences: Using a small summary to limit token use but keep enough context for the next prompt so the events follow eachother instead of creating a completely new narrative.
 * Circular dependencies: When service A injects Service B, and Service B injects Service A. This is a chicken and egg story, it should be solved architecturally.
-
+* Exception handling: When throwing an exception inside a function the return type should be never. Otherwise TypeScript does not recognize that the exception stop code execution at that point
 ## Key Features
 
 * Orchestration Pattern (GameService): Centralizes multi-step transaction loops (such as ending a turn or initializing a new game) without cluttering controllers or domain layers.

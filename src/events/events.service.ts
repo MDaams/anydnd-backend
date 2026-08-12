@@ -4,23 +4,58 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import {
-  BaseGameEvent,
   CharacterEvent,
+  eventFromPlain,
   EventStatus,
   EventUtils,
-  GameEventFactory,
+  GameEvent,
+  WorldEvent,
 } from './models/events.model';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
-import { randomNumber } from 'src/common/helpers.utils';
 import { GameTurn } from 'src/game/models/turn.models';
-import { EventAction } from './models/action.model';
-import { AppLogger } from 'src/common/logger.util';
+import { isEmpty } from 'class-validator';
+import { chanceRollToHundred } from '@src/common/chance.utils';
 
 @Injectable()
 export class EventsService {
-  private eventLog: Array<BaseGameEvent> = [];
+  private eventLog: Array<GameEvent> = [];
 
   constructor() {}
+
+  private handleEmptyChoice(): never {
+    throw new UnprocessableEntityException('Choice is an empty string.');
+  }
+
+  private handleEventNotFound(eventId: string): never {
+    throw new InternalServerErrorException(
+      `Event with id ${eventId} not found`,
+    );
+  }
+
+  private handleCannotSubmitOnWorldEvent(): never {
+    throw new UnprocessableEntityException(
+      'Tried to submit a choice on an event with type World.',
+    );
+  }
+
+  private findById(eventId: string): GameEvent | undefined {
+    return this.eventLog.find((event) => event.id === eventId);
+  }
+
+  private updateEvent(
+    eventToUpdate: GameEvent,
+    eventToUpdateWith: GameEvent,
+  ): GameEvent {
+    const updateIndex: number = this.eventLog.indexOf(eventToUpdate);
+
+    this.eventLog[updateIndex] = eventToUpdateWith;
+
+    return this.eventLog[updateIndex];
+  }
+
+  private isAWorldEvent(event: GameEvent): event is WorldEvent {
+    return EventUtils.isWorldEvent(event);
+  }
 
   hasPendingEvent(character: GameCharacter) {
     return (
@@ -39,7 +74,7 @@ export class EventsService {
     this.eventLog = [];
   }
 
-  getEventLog(): Array<BaseGameEvent> {
+  getEventLog(): Array<GameEvent> {
     return this.eventLog;
   }
 
@@ -48,36 +83,26 @@ export class EventsService {
     intent: string,
     choice: string,
     currentTurn: GameTurn,
-  ): BaseGameEvent {
-    const eventIndex = this.eventLog.findIndex((event) => event.id === eventId);
+  ): GameEvent {
+    if (isEmpty(choice)) this.handleEmptyChoice();
+    const event = this.findById(eventId);
 
-    if (choice === '')
-      throw new UnprocessableEntityException('Choice is an empty string.');
-    if (eventIndex === -1) {
-      throw new InternalServerErrorException(
-        `Event with id ${eventId} not found`,
-      );
-    }
+    if (!event) this.handleEventNotFound(eventId);
+    if (this.isAWorldEvent(event)) this.handleCannotSubmitOnWorldEvent();
 
-    const event = GameEventFactory.fromPlain(this.eventLog[eventIndex]);
+    const resolvableEvent = event;
 
-    if (EventUtils.isCharacterEvent(event) || EventUtils.isSceneEvent(event)) {
-      event.action = new EventAction(choice, intent, currentTurn.getStep());
-      event.status = EventStatus.RESOLVED;
-      const succesRoll = randomNumber(100);
-      AppLogger.log(`🎲 Chosen option succes roll: ${succesRoll}`);
-      event.chosenOptionSucces = succesRoll <= 75;
-      event.createdAt = currentTurn.clone();
-      this.eventLog[eventIndex] = event;
-      return event;
-    }
-
-    throw new UnprocessableEntityException(
-      'Cannot submit a choice for a Worldevent',
+    resolvableEvent.submitChoice(
+      choice,
+      intent,
+      currentTurn,
+      chanceRollToHundred(),
     );
+
+    return this.updateEvent(event, resolvableEvent);
   }
 
-  addEvent(event: BaseGameEvent): void {
+  addEvent(event: GameEvent): void {
     this.eventLog = [...this.eventLog, event];
   }
 }
