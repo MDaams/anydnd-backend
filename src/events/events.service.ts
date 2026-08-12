@@ -13,6 +13,7 @@ import { GameCharacter } from 'src/characters/models/gameCharacter.model';
 import { randomNumber } from 'src/common/helpers.utils';
 import { GameTurn } from 'src/game/models/turn.models';
 import { EventAction } from './models/action.model';
+import { AppLogger } from '@src/common/logger.util';
 
 @Injectable()
 export class EventsService {
@@ -62,7 +63,9 @@ export class EventsService {
     if (event instanceof CharacterEvent || event instanceof SceneEvent) {
       event.action = new EventAction(choice, intent, currentTurn.getStep());
       event.status = EventStatus.RESOLVED;
-      event.chosenOptionSucces = randomNumber(100) <= 50;
+      const succesRoll = randomNumber(100);
+      AppLogger.log(`🎲 Chosen option succes roll: ${succesRoll}`);
+      event.chosenOptionSucces = succesRoll <= 75;
       event.createdAt = currentTurn.clone();
       this.eventLog[eventIndex] = event;
       return event;

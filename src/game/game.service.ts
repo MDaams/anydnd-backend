@@ -266,7 +266,7 @@ export class GameService {
     characters.forEach((c) => {
       this.characterService.addCharacter({
         ...c,
-      } as GameCharacter);
+      });
     });
 
     this.setWorldSummary(worldSummary);

@@ -137,9 +137,14 @@ export class AIService {
     const characterContext =
       otherCharacters && otherCharacters.length > 0
         ? otherCharacters
-            .map(
-              (c) => `ID: ${c.id} | Name: ${c.name} | Backstory: ${c.summary}`,
-            )
+            .map((c) => {
+              const inventoryList =
+                c.inventory && c.inventory.length > 0
+                  ? c.inventory.map((i) => `${i.name} (ID: ${i.id})`).join(', ')
+                  : 'None';
+
+              return `ID: ${c.id} | Name: ${c.name} | Backstory: ${c.summary} | Inventory: [${inventoryList}]`;
+            })
             .join('\n')
         : 'No active characters in scene';
 
@@ -281,8 +286,21 @@ RULES:
 - Keep the tone strictly like '${tone}'.
 - ASCII art: Evocative scenery, 8-12 lines high, max 45 chars wide.
 
+ITEM MANAGEMENT RULES:
+1. INVENTORY AWARENESS: Look at the items listed in the character context. Characters can only use, trade, or give away items they actually possess in their inventory.
+2. PERSISTENCE & CHANGES: If an item is given, consumed, dropped, or stolen, explicitly declare it in the "inventoryChanges" array. Do not let items disappear or duplicate without a narrative cause.
+3. LOGICAL CONSEQUENCES: If the player attempts to use an item they do not possess, the action must fail or trigger a narrative consequence reflecting that missing tool.
+
+
 JSON RESPONSE SCHEMA:
 {
+  "worldSummary": "Updated 3-5 sentence summary of the ongoing story state, dead characters, and world changes.",
+  "worldEvent": {
+    "title": "Short title (3-6 words)",
+    "description": "2-3 clear sentences. Cause-and-effect of the player's action, strictly adhering to the SUCCESS/FAILURE roll outcome and respecting who is alive or dead.",
+    "asciiArt": "ASCII art (5-8 lines)"
+  },
+  {
   "worldSummary": "Updated 3-5 sentence summary of the ongoing story state, dead characters, and world changes.",
   "worldEvent": {
     "title": "Short title (3-6 words)",
@@ -294,7 +312,13 @@ JSON RESPONSE SCHEMA:
       "id": "Unique string ID",
       "name": "Full name",
       "role": "Job or position",
-      "summary": "2-3 clear sentences description."
+      "summary": "2-3 clear sentences description.",
+      "inventory": [
+        {
+          "id": "unique-item-id",
+          "name": "Item Name"
+        }
+      ]
     }
   ],
   "characterEvents": [
