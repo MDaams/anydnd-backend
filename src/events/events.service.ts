@@ -4,20 +4,21 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import {
-  BaseGameEvent,
   CharacterEvent,
+  eventFromPlain,
   EventStatus,
   EventUtils,
-  GameEventFactory,
-  SceneEvent,
+  GameEvent,
+  WorldEvent,
 } from './models/events.model';
 import { GameCharacter } from 'src/characters/models/gameCharacter.model';
 import { GameTurn } from 'src/game/models/turn.models';
 import { isEmpty } from 'class-validator';
+import { chanceRollToHundred } from '@src/common/chance.utils';
 
 @Injectable()
 export class EventsService {
-  private eventLog: Array<BaseGameEvent> = [];
+  private eventLog: Array<GameEvent> = [];
 
   constructor() {}
 
@@ -31,20 +32,20 @@ export class EventsService {
     );
   }
 
-  private handleCannotSubmitOnWorldEvent() {
+  private handleCannotSubmitOnWorldEvent(): never {
     throw new UnprocessableEntityException(
       'Tried to submit a choice on an event with type World.',
     );
   }
 
-  private findById(eventId: string): BaseGameEvent | undefined {
+  private findById(eventId: string): GameEvent | undefined {
     return this.eventLog.find((event) => event.id === eventId);
   }
 
   private updateEvent(
-    eventToUpdate: BaseGameEvent,
-    eventToUpdateWith: BaseGameEvent,
-  ): BaseGameEvent {
+    eventToUpdate: GameEvent,
+    eventToUpdateWith: GameEvent,
+  ): GameEvent {
     const updateIndex: number = this.eventLog.indexOf(eventToUpdate);
 
     this.eventLog[updateIndex] = eventToUpdateWith;
@@ -52,7 +53,7 @@ export class EventsService {
     return this.eventLog[updateIndex];
   }
 
-  private isAWorldEvent(event: BaseGameEvent) {
+  private isAWorldEvent(event: GameEvent): event is WorldEvent {
     return EventUtils.isWorldEvent(event);
   }
 
@@ -73,30 +74,35 @@ export class EventsService {
     this.eventLog = [];
   }
 
-  getEventLog(): Array<BaseGameEvent> {
+  getEventLog(): Array<GameEvent> {
     return this.eventLog;
   }
+
   submitChoice(
     eventId: string,
     intent: string,
     choice: string,
     currentTurn: GameTurn,
-  ): BaseGameEvent {
+  ): GameEvent {
     if (isEmpty(choice)) this.handleEmptyChoice();
-    const event: BaseGameEvent | undefined = this.findById(eventId);
+    const event = this.findById(eventId);
 
     if (!event) this.handleEventNotFound(eventId);
     if (this.isAWorldEvent(event)) this.handleCannotSubmitOnWorldEvent();
 
-    const updatedEvent: SceneEvent | CharacterEvent =
-      GameEventFactory.fromPlain(event);
+    const resolvableEvent = event;
 
-    GameEventFactory.submitChoice(event, choice, intent, currentTurn);
+    resolvableEvent.submitChoice(
+      choice,
+      intent,
+      currentTurn,
+      chanceRollToHundred(),
+    );
 
-    return this.updateEvent(event, updatedEvent);
+    return this.updateEvent(event, resolvableEvent);
   }
 
-  addEvent(event: BaseGameEvent): void {
+  addEvent(event: GameEvent): void {
     this.eventLog = [...this.eventLog, event];
   }
 }
